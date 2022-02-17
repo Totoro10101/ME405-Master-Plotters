@@ -1,7 +1,8 @@
 # ME405 Master Plotters
 ## A ME 405 term project that documents a pen plotter design.
 
-The design we're going with is inspired by this YouTube video by DAZ projects. 
+The design we're going with is inspired by this YouTube video by DAZ projects: 
+
 [the SIMPLEST cnc PEN PLOTTER | how to build it](https://www.youtube.com/watch?v=zFRRUZdz1HY)
 
 
