@@ -25,3 +25,9 @@ pulleys will be purchased from Amazon and other components to hold the pen will 
 |  1   | Purple Sharpie&trade; | Office Min&trade;     |   $1.02   |
 |  2   | 5A Power MOSFET       | Doggy-Key             |   $2.34   |
 |  3   | Rubber Gaskets        | Dumpster Behind Bondo | Our pride |
+
+
+## System Sketch
+| ![Plotter System](plots/scaledsketch.png) |
+|:--:|
+|**Figure 1: Scaled sketch showing the basic layout of our planned plotter**|
