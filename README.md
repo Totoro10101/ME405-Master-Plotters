@@ -9,7 +9,7 @@ Although we're taking inspriation from this design, we are making some changes t
 the plotter. The basic layout of this design is a 2.5-D pen plotter that is laid out horizontally on a flat base. The base is
 is going to be a rectangular plywood piece with pulleys at each corner. There will be two gear motors driving the pen plotter placed
 at two adjacent corners (see sketch). The two motors will direct drive the two pulleys at the corners of the base, and the two other 
-pulleys will control the tension of the belt. Instead of using string and bungey cord like the video, we will use a GT2 timing belt
+pulleys will control the tension of the belt. Instead of using string like the video, we will use a GT2 timing belt
 to increase the traction on the pulley because of the gearing present on the pulley wheels and the belts. To actuate the pen and lift it
 off of the paper of moving between intermediate lines, we'll use a small solenoid that activates to lift the pen. Thep pen's resting
 position is on the table, so the solenoid will only activate in between drawings.
@@ -18,14 +18,16 @@ A rough bill of materials is shown below. We're keeping the main motors simple b
 pulleys will be purchased from Amazon and other components to hold the pen and solenoid will be 3D printed by our group.
 
 ## Bill of Materials
-| Qty. | Part                  | Source                | Est. Cost |
-|:----:|:----------------------|:----------------------|:---------:|
-|  2   | Pittperson Gearmotors | ME405 Tub             |     -     |
-|  1   | Nucleo with Shoe      | ME405 Tub             |     -     |
-|  1   | Purple Sharpie&trade; | Office Min&trade;     |   $1.02   |
-|  2   | 5A Power MOSFET       | Doggy-Key             |   $2.34   |
-|  3   | Rubber Gaskets        | Dumpster Behind Bondo | Our pride |
-
+| Qty. | Part                           | Source                | Est. Cost |
+|:----:|:-------------------------------|:----------------------|:---------:|
+|  2   | Pittperson Gearmotors          | ME405 Tub             |     -     |
+|  1   | Nucleo with Shoe               | ME405 Tub             |     -     |
+|  1   | GT2 Timing Belt                | Amazon                |   $6.99   |
+|  1   | GT2 Timing Pulleys             | Amazon                |   $7.99   |
+|  1   | Mini Ball Transfer Bearing     | Amazon                |   $10.95  |
+|  4   | Bronze Bushings                | ME 405 Tub            |     -     |
+|  1   | Sunfounder Micro Servo         | Charlie               |     -     | 
+|  1   | BongoTies Bungie Cord          | Senior Project        |     -     | 
 
 ## System Sketch
 | ![Plotter System](plots/scaledsketch.png) |
