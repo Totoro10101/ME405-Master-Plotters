@@ -15,7 +15,7 @@ off of the paper of moving between intermediate lines, we'll use a small solenoi
 position is on the table, so the solenoid will only activate in between drawings.
 
 A rough bill of materials is shown below. We're keeping the main motors simple by using the equipment available to us in lab. The GT2 belt and
-pulleys will be purchased from Amazon and other components to hold the pen will be 3D printed by our group. 
+pulleys will be purchased from Amazon and other components to hold the pen and solenoid will be 3D printed by our group.
 
 ## Bill of Materials
 | Qty. | Part                  | Source                | Est. Cost |
