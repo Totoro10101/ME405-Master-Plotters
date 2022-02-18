@@ -5,17 +5,19 @@ The design we're going with is inspired by this YouTube video by DAZ projects:
 
 [the SIMPLEST cnc PEN PLOTTER | how to build it](https://www.youtube.com/watch?v=zFRRUZdz1HY)
 
-Although we're taking inspriation from this design, we are making some changes to the design that we believe will improve 
-the plotter. The basic layout of this design is a 2.5-D pen plotter that is laid out horizontally on a flat base. The base is
-is going to be a rectangular plywood piece with pulleys at each corner. There will be two gear motors driving the pen plotter placed
-at two adjacent corners (see sketch). The two motors will direct drive the two pulleys at the corners of the base, and the two other 
-pulleys will control the tension of the belt. Instead of using string like the video, we will use a GT2 timing belt
-to increase the traction on the pulley because of the gearing present on the pulley wheels and the belts. To actuate the pen and lift it
-off of the paper of moving between intermediate lines, we'll use a small solenoid that activates to lift the pen. Thep pen's resting
-position is on the table, so the solenoid will only activate in between drawings.
+Although we're taking inspriation from this design, we are making some changes that we believe will improve
+its performance. The basic layout of this design is a 2.5-D pen plotter that is laid out horizontally on a flat base. The base is
+is going to be a rectangular plywood piece with pulleys at each corner. There will be two gearmotors driving the pen plotter placed
+at two adjacent corners (see sketch). The two motors will directly drive the two pulleys at the corners of the base, and the two other 
+pulleys will be idlers which guide the belt. They will make the belt form one continuous loop in an hourglass shape.
+Instead of using string like the video, we will use a GT2 timing belt to increase the traction on the pulley because of the teeth
+present on the pulley wheels and the belts, and eliminate slipping. Since the total length of the belt will change slightly as the pen moves,
+we will use a stretchy rubber band joined with the timing belt to provide some room for movement while keeping tension. To actuate the pen and lift it
+off of the paper when moving between drawn lines, we'll use a small servo that activates to lift the pen within its holder. This holder will have
+ball rollers on the bottom to allow it to move smoothly over the paper.
 
-A rough bill of materials is shown below. We're keeping the main motors simple by using the equipment available to us in lab. The GT2 belt and
-pulleys will be purchased from Amazon and other components to hold the pen and solenoid will be 3D printed by our group.
+A rough bill of materials is shown below. We're keeping the main motors simple and efficient by using the equipment available to us in lab. The GT2 belt and
+pulleys will be purchased from Amazon and other components to hold the pen and servo and to mount the motors will be 3D printed by our group.
 
 ## Bill of Materials
 | Qty. | Part                           | Source                | Est. Cost |
