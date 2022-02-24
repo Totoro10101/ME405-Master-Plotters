@@ -13,11 +13,13 @@
     
     @section sec_sch    Software Design
                         
-    @subsection sec_sch Task Diagram
+    @subsection subsec_sch task_motor
     
-    @subsection sec_sch Task Diagram
+    @subsection subsec_sch task_encoder
     
-    @subsection sec_sch Task Diagram
+    @subsection subsec_sch task_controller
+    
+    @subsection subsec_sch task_gcode
                          
     @author             Tori Bornino
     @author             Jackson McLaughlin
