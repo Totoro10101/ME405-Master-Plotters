@@ -12,12 +12,12 @@
                         https://github.com/Totoro10101/ME405-Master-Plotters
     
     @section sec_sch    Software Design
+    
+                        @image html Task_Diagram.jpg
                         
     
     @subsection subsec_sch1 task_encoder
                             Reads the position of the encoder on each motor and stores them in a share.
-                            
-                            @image html Task_Encoder.jpg
                             
     @subsection subsec_sch2 task_startup
                             This task will have the ability to zero the encoder position.
@@ -25,7 +25,6 @@
                             given image at a known location. It will use a limit switch to determine the
                             zero point on the drawing area. 
                             
-                            @image html Task_Startup.jpg
                             @image html Task_Startup_FSM.jpg
                             
     @subsection subsec_sch3 task_controller
@@ -35,14 +34,10 @@
                             cycle and move the pen to the desired location. This task will read from csv data
                             to move the pen carriage by controlling each motor.
                             
-                            @image html Task_Controller.jpg
-                            
     @subsection subsec_sch4 task_parser
                             Parses the HPGL file for a given image and then parses this file for the relevant
                             commands to move the pen carriage. These include "pen advance" and lifting the pen
                             off of the paper when not plotting.
-                            
-                            @image html Task_Parser.jpg
                          
     @author             Tori Bornino
     @author             Jackson McLaughlin

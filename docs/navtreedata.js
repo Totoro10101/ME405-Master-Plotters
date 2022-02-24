@@ -27,10 +27,10 @@ var NAVTREE =
   [ "ME 405 Term Project: Master Plotters", "index.html", [
     [ "Introduction", "index.html#sec_intro", null ],
     [ "Software Design", "index.html#sec_sch", [
-      [ "task_motor", "index.html#subsec_sch", null ],
       [ "task_encoder", "index.html#subsec_sch1", null ],
-      [ "task_controller", "index.html#subsec_sch2", null ],
-      [ "task_gcode", "index.html#subsec_sch3", null ]
+      [ "task_startup", "index.html#subsec_sch2", null ],
+      [ "task_controller", "index.html#subsec_sch3", null ],
+      [ "task_parser", "index.html#subsec_sch4", null ]
     ] ],
     [ "Files", "files.html", [
       [ "File List", "files.html", "files_dup" ]
