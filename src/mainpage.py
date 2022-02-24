@@ -15,11 +15,14 @@
                         
     @subsection subsec_sch task_motor
     
-    @subsection subsec_sch task_encoder
     
-    @subsection subsec_sch task_controller
+    @subsection subsec_sch1 task_encoder
     
-    @subsection subsec_sch task_gcode
+    
+    @subsection subsec_sch2 task_controller
+    
+    
+    @subsection subsec_sch3 task_gcode
                          
     @author             Tori Bornino
     @author             Jackson McLaughlin
