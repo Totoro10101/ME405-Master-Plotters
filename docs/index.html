@@ -93,7 +93,7 @@ Introduction</h1>
 <h1><a class="anchor" id="sec_sch"></a>
 Software Design</h1>
 <div class="image">
-<img src="task_diagram.jpg" alt=""/>
+<img src="task_diagram.jpg" alt="" width="75%"/>
 </div>
 <h2><a class="anchor" id="subsec_sch1"></a>
 task_encoder</h2>
@@ -102,19 +102,19 @@ task_encoder</h2>
 task_startup</h2>
 <p >This task will have the ability to zero the encoder position. Zeroing the encoder is important to ensuring we start plotting the given image at a known location. It will use a limit switch to determine the zero point on the drawing area.</p>
 <div class="image">
-<img src="task_startup_FSM.jpg" alt=""/>
+<img src="task_startup_FSM.jpg" alt="" width="75%"/>
 </div>
 <h2><a class="anchor" id="subsec_sch3"></a>
 task_controller</h2>
 <p >Controls the motor duty cycle based on set points received from the parser task. When a set point is taken from the parser task, it compares the set point to the current encoder position. Then it uses closed loop control to set the motor duty cycle and move the pen to the desired location. This task will read from csv data to move the pen carriage by controlling each motor. Controller task is always running so there is no finite state machine needed.</p>
 <div class="image">
-<img src="task_controller_FSM.jpg" alt=""/>
+<img src="task_controller_FSM.jpg" alt="" width="75%"/>
 </div>
 <h2><a class="anchor" id="subsec_sch4"></a>
 task_parser</h2>
 <p >Parses the HPGL file for a given image and then parses this file for the relevant commands to move the pen carriage. These include "pen advance" and lifting the pen off of the paper when not plotting. Parser task doesn't require a finite state machine since it's only purpose is to read the HPGL data and doesn't transition to any other state.</p>
 <div class="image">
-<img src="task_parser_FSM.jpg" alt=""/>
+<img src="task_parser_FSM.jpg" alt="" width="75%"/>
 </div>
 <dl class="section author"><dt>Author</dt><dd>Tori Bornino </dd>
 <dd>
