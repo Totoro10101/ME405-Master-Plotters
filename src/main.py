@@ -30,6 +30,8 @@ ki = 0*(360/_PPR)
 kd = 0*(360/_PPR)
 # Read time length of step response from serial port
 # _stepResponseTime = 1.5*1000  #ms
+MOTOR1 = 0
+MOTOR2 = 1
 
 def task_enc1_fun():
     """!
@@ -47,24 +49,43 @@ def task_enc2_fun():
         encoder2_share.put (encoder2.read())
         yield ()
         
-def task_controller1_fun ():
+def task_controller_fun ():
     """!
     Task that runs a PID controller.
     """
     while True:
-        motor1.set_duty_cycle(pidController1.run()) # set motor duty
+        if controller_state == SERVO:
+            act = pidController.run(None)
+            if act == True:
+                controller_state == MOTOR:
+            else:
+                servo.set_pwm()
+            
+        
+        if controller_state == MOTOR:
+            duty1 = pidController.run(MOTOR1)
+            duty2 = pidController.run(MOTOR2)
+        
+            if duty1 == False or duty2 == False 
+                motor1.set_duty_cycle(0)
+                motor2.set_duty_cycle(0)
+                controller_state = SERVO
+            else:
+                motor1.set_duty_cycle(duty1)
+                motor2.set_duty_cycle(duty2)
+            
         yield ()
         
-def task_data1_fun ():
-    done = False
-    while True:
-        if time.ticks_diff(time.ticks_ms(), tasks_start_time) < _stepResponseTime:
-            print_task.put(pidController1.get_data_str())
-        else:
-            if not done:
-                print_task.put("Done!\n")
-                done = True
-        yield ()
+# def task_data1_fun ():
+#     done = False
+#     while True:
+#         if time.ticks_diff(time.ticks_ms(), tasks_start_time) < _stepResponseTime:
+#             print_task.put(pidController1.get_data_str())
+#         else:
+#             if not done:
+#                 print_task.put("Done!\n")
+#                 done = True
+#         yield ()
 
 # This code creates a share for each encoder object, creates encoder objects to read from, creates controller
 # objects and sets the gain and set point positions. 
@@ -74,26 +95,34 @@ if __name__ == "__main__":
     encoder1_share = task_share.Share('i', thread_protect = False, name = "Encoder 1 Share")
     encoder2_share = task_share.Share('i', thread_protect = False, name = "Encoder 2 Share")
     
+    # Create a Queue with set points (theta_1, theta_2, Pen_up/down) (ticks)
+    set_point_queue = task_share.Queue()
+    
+    
+    
     # Instantiate encoders with default pins and timer
     encoder1 = encoder.EncoderDriver(pyb.Pin.cpu.B6, pyb.Pin.cpu.B7, 4)
     encoder2 = encoder.EncoderDriver(pyb.Pin.cpu.C6, pyb.Pin.cpu.C7, 8)
     
     # Instantiate proportional controllers with initial gains and  
-    pidController1 = task_controller.PIDController(0, 1, 0, 0, encoder1_share)
-    pidController2 = task_controller.PIDController(0, 1, 0, 0, encoder2_share)
+    pidController = task_controller.PIDController(set_point_Queue, 1, 0, 0,
+                                                  encoder1_share, encoder2_share)
+    pidController.set_gains(kp, ki, kd)
     
-    pidController1.set_gains(kp, ki, kd)
-    pidController2.set_gains(kp, ki, kd)
-    # Read desired set point position from serial port
-    # Converts degrees to ticks
-    pidController1.set_set_point(float(360)*(_PPR/360))
-    pidController2.set_set_point(float(360)*(_PPR/360))
-    
-    # Instantiate motor 1 with default pins and timer
+      
+    # Instantiate motors with default pins and timer
     motor1 = motor.MotorDriver(pyb.Pin.board.PA10, pyb.Pin.board.PB4,
                                pyb.Pin.board.PB5, pyb.Timer(3, freq=20000))
     motor2 = motor.MotorDriver(pyb.Pin.board.PC1, pyb.Pin.board.PA0,
                                pyb.Pin.board.PA1, pyb.Timer(5, freq=20000))
+    
+    
+    # Instantiate servo
+    
+    
+    
+    
+    
 
     # Create the tasks. If trace is enabled for any task, memory will be
     # allocated for state transition tracing, and the application will run out
@@ -103,18 +132,17 @@ if __name__ == "__main__":
                          period = 10, profile = True, trace = False)
     task_encoder2 = cotask.Task (task_enc2_fun, name = 'Encoder_2_Task', priority = 2, 
                          period = 10, profile = True, trace = False)
-    task_controller1 = cotask.Task (task_controller1_fun, name = 'Controller_1_Task', priority = 1, 
+    task_controller = cotask.Task (task_controller_fun, name = 'Controller_Task', priority = 1, 
                          period = 300, profile = True, trace = False)
-    task_controller2 = cotask.Task (task_controller2_fun, name = 'Controller_2_Task', priority = 1, 
-                         period = 300, profile = True, trace = False)
-    task_data1 = cotask.Task (task_data1_fun, name = 'Data Collection Task', priority = 0,
-                              period = 10, profile = True, trace = False)
+    
+#     task_data1 = cotask.Task (task_data1_fun, name = 'Data Collection Task', priority = 0,
+#                               period = 10, profile = True, trace = False)
     
     cotask.task_list.append (task_encoder1)
-    cotask.task_list.append (task_controller1)
     cotask.task_list.append (task_encoder2)
-    cotask.task_list.append (task_controller2)
-    cotask.task_list.append (task_data1)
+    cotask.task_list.append (task_controller)
+
+#     cotask.task_list.append (task_data1)
 
     # Run the memory garbage collector to ensure memory is as defragmented as
     # possible before the real-time scheduler is started

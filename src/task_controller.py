@@ -88,11 +88,12 @@ class PIDController:
                 self.curr_servo_state = UP
             elif self._set_point[servo_set_point] == True:
                 actuation_value = MOVE_DOWN 
-                self.curr_servo_state = UP
+                self.curr_servo_state = DOWN
                 
             if time.ticks_diff(time.ticks_ms, self._servo_start_time) >= servo_wait:
                 self._servo_start_time = None
                 self.state = STATE_MOTOR
+                actuation_value = True
                 
                 
             
@@ -109,8 +110,9 @@ class PIDController:
                     self.state = STATE_SERVO
                     actuation_value = False
                     
-            # Store initial step time
-            else:
+            
+            else: 
+                # Store initial step time
                 if self.step_start_time[motorID] == None:
                     self.step_start_time[motorID] = time.ticks_ms()
                     self._last_time[motorID] = self.step_start_time[motorID]
@@ -144,20 +146,11 @@ class PIDController:
                 # Store values for next iteration
                 self._last_error[motorID] = self._error[motorID]
                 self._last_time[motorID] = curr_time
-                
-
-                
+                       
             
         return actuation_value
-    
-    def set_set_point(self, set_point):
-        '''! 
-        Sets the desired setpoint for the step response.
-        
-        @param set_point  The desired steady state response value.  
-        '''
-        self._set_point = set_point
-        
+
+
     def set_gains(self, Kp, Ki, Kd):
         '''! 
         Sets the proportional gain controller value.
@@ -172,12 +165,24 @@ class PIDController:
         self._Kp = Kp
         self._Ki = Ki
         self._Kd = Kd
+        
+        
+        
+#     def set_set_point(self, set_point):
+#         '''! 
+#         Sets the desired setpoint for the step response.
+#         
+#         @param set_point  The desired steady state response value.  
+#         '''
+#         self._set_point = set_point
+        
+
                    
-    def get_data_str(self):
-        '''!
-        Returns the current time (ms) and position (ticks) as a string.
-        The string output is: "time,position\r\n"
-        '''
-        if self.data_start_time == None:
-            self.data_start_time = time.ticks_ms()
-        return f"{time.ticks_diff(time.ticks_ms(),self.data_start_time)},{self._sensor_share.get()}\n"
+#     def get_data_str(self):
+#         '''!
+#         Returns the current time (ms) and position (ticks) as a string.
+#         The string output is: "time,position\r\n"
+#         '''
+#         if self.data_start_time == None:
+#             self.data_start_time = time.ticks_ms()
+#         return f"{time.ticks_diff(time.ticks_ms(),self.data_start_time)},{self._sensor_share.get()}\n"
