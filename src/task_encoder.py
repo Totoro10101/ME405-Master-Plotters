@@ -9,3 +9,10 @@
 @date               March 15, 2022
 
 """
+import encoder
+
+class TaskEncoder:
+    
+    
+    
+    

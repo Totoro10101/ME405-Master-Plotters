@@ -19,8 +19,8 @@ import cotask
 import task_share
 import print_task
 import time
+import encoder
 import task_startup
-import task_encoder
 import task_controller
 import task_parser
 
@@ -66,25 +66,6 @@ def task_data1_fun ():
                 done = True
         yield ()
 
-def task_controller2_fun ():
-    """!
-    Task that runs a PID controller.
-    """
-    while True:
-        motor2.set_duty_cycle(pidController2.run()) # set motor duty
-        yield ()
-
-# def task_data2_fun ():
-#     done = False
-#     while True:
-#         if time.ticks_diff(time.ticks_ms(), tasks_start_time) < _stepResponseTime:
-#             print_task.put(pidController2.get_data_str())
-#         else:
-#             if not done:
-#                 print_task.put("Done!\n")
-#                 done = True
-#         yield ()
-
 # This code creates a share for each encoder object, creates encoder objects to read from, creates controller
 # objects and sets the gain and set point positions. 
 if __name__ == "__main__":
@@ -98,8 +79,8 @@ if __name__ == "__main__":
     encoder2 = encoder.EncoderDriver(pyb.Pin.cpu.C6, pyb.Pin.cpu.C7, 8)
     
     # Instantiate proportional controllers with initial gains and  
-    pidController1 = pidcontroller.PIDController(0, 1, 0, 0, encoder1_share)
-    pidController2 = pidcontroller.PIDController(0, 1, 0, 0, encoder2_share)
+    pidController1 = task_controller.PIDController(0, 1, 0, 0, encoder1_share)
+    pidController2 = task_controller.PIDController(0, 1, 0, 0, encoder2_share)
     
     pidController1.set_gains(kp, ki, kd)
     pidController2.set_gains(kp, ki, kd)
