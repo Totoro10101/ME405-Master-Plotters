@@ -27,45 +27,55 @@ MOVE_DOWN = 10
 
 class PIDController:
     '''! 
-    This class implements a PID controller. It contains methods for setting the
-    set point, Kp, Ki, and Kd gains. As well as a method for printing run data:
-    time (ms) and position (ticks).
-    '''
-   
-    def __init__ (self, set_point_queue, Kp, Ki, Kd, sensor_share1, sensor_share2):
+    This class implements a PID controller. It contains methods for calculating
+    the actuation value and setting the Kp, Ki, and Kd gains. 
+    ''' 
+    
+    def __init__ (self, Kp, Ki, Kd, set_point_queue, sensor_share1, sensor_share2):
         '''! 
-        Creates a proportional controller by initializing setpoints and gains
+        Creates a proportional controller by initializing controller gains
         
-        @param setpoint      The initial desired location of the step response  
-        @param Kp            The proportional gain for the controller.
-                             Units of (dutyCycle/ticks)
-        @param Ki            The integral gain for the controller.
-                             Units of (dutyCycle/(ticks*seconds))
-        @param Kd            The derivative gain for the controller.
-                             Units of (dutyCycle/(ticks/seconds))
-        @param sensor_share  A share the contains the read position from sensor        
+        @param Kp               The proportional gain for the controller.
+                                Units of (dutyCycle/ticks)
+        @param Ki               The integral gain for the controller.
+                                Units of (dutyCycle/(ticks*seconds))
+        @param Kd               The derivative gain for the controller.
+                                Units of (dutyCycle/(ticks/seconds))
+        @param set_point_queue  A queue containing the desired set point
+                                locations of the step response.  
+        @param sensor_share1    A share that contains the read position from
+                                sensor 1 in a (2) sensor system with
+                                independently controlled actuators.
+        @param sensor_share2    A share that contains the read position from
+                                sensor 2 in a (2) sensor system with
+                                independently controlled actuators.
         '''
         
         self._set_point_queue = set_point_queue
-        self._curr_set_point = _curr_set_point
         self._Kp = Kp
         self._Ki = Ki
         self._Kd = Kd
         self._sensor_share = [sensor_share1, sensor_share2]
         
+        ##  @brief      Tuple with current set point. Where the motor set points
+        #               are in ticks and the pen position is a boolean.
+        #               (theta_1, theta_2, Pen)
+        self.curr_set_point = (None, None, None)
         
-        ##  @brief      Step response start time
+        
+        ##  @brief      Step response start time for each motor
         self.step_start_time = [None, None]
         
-        # Store data to calculate actuation value
+        # Store data to calculate actuation values
         self._error = [0, 0]
         self._last_time = [0, 0]
         self._last_error = [0, 0]
         self._Iduty = [0, 0]
         
-        ##  @brief Data Collection Start Time
-        self.data_start_time = [None, None]
+#         ##  @brief Data Collection Start Time
+#         self.data_start_time = [None, None]
         
+        ##  @brief
         self.curr_servo_state = UP
         
         
