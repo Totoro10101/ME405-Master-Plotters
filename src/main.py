@@ -113,6 +113,10 @@ def task_controller_fun ():
 #                 done = True
 #         yield ()
 
+
+
+
+
 # This code creates a share for each encoder object, creates encoder objects to read from, creates controller
 # objects and sets the gain and set point positions. 
 
@@ -126,17 +130,15 @@ if __name__ == "__main__":
     set_point_queue = task_share.Queue()
     
     
-    
     # Instantiate encoders with default pins and timer
     encoder1 = encoder.EncoderDriver(pyb.Pin.cpu.B6, pyb.Pin.cpu.B7, 4)
     encoder2 = encoder.EncoderDriver(pyb.Pin.cpu.C6, pyb.Pin.cpu.C7, 8)
     
-    # Instantiate proportional controllers with initial gains and  
-    pidController = task_controller.PIDController(set_point_Queue, 1, 0, 0,
-                                                  encoder1_share, encoder2_share)
-    pidController.set_gains(kp, ki, kd)
+    # Instantiate limit switches? <-----may go in startup task
     
-      
+    # Instantiate servo
+    
+    
     # Instantiate motors with default pins and timer
     motor1 = motor.MotorDriver(pyb.Pin.board.PA10, pyb.Pin.board.PB4,
                                pyb.Pin.board.PB5, pyb.Timer(3, freq=20000))
@@ -144,27 +146,43 @@ if __name__ == "__main__":
                                pyb.Pin.board.PA1, pyb.Timer(5, freq=20000))
     
     
-    # Instantiate servo
+    
+    # Instantiate startup task
+    
+    # Instantiate parser task
     
     
+    # Instantiate proportional controllers with initial gains  
+    pidController = task_controller.PIDController(set_point_Queue, 1, 0, 0,
+                                                  encoder1_share, encoder2_share)
+    pidController.set_gains(kp, ki, kd)
     
     
+        
     
 
     # Create the tasks. If trace is enabled for any task, memory will be
     # allocated for state transition tracing, and the application will run out
     # of memory after a while and quit. Therefore, use tracing only for 
     # debugging and set trace to False when it's not needed
-    task_encoder1 = cotask.Task (task_enc1_fun, name = 'Encoder_1_Task', priority = 2, 
+
+# startup task only runs once, so we may not want to add to the scheduler? 
+#     task_startup = cotask.Task (task_startup_fun, name = 'StartUp_Task', priority = 4, 
+#                          period = 10, profile = True, trace = False)
+
+#     task_parser = cotask.Task (task_parser_fun, name = 'Parser_Task', priority = 2, 
+#                          period = 100, profile = True, trace = False)
+    task_encoder1 = cotask.Task (task_enc1_fun, name = 'Encoder_1_Task', priority = 3, 
                          period = 10, profile = True, trace = False)
-    task_encoder2 = cotask.Task (task_enc2_fun, name = 'Encoder_2_Task', priority = 2, 
+    task_encoder2 = cotask.Task (task_enc2_fun, name = 'Encoder_2_Task', priority = 3, 
                          period = 10, profile = True, trace = False)
     task_controller = cotask.Task (task_controller_fun, name = 'Controller_Task', priority = 1, 
                          period = 300, profile = True, trace = False)
     
 #     task_data1 = cotask.Task (task_data1_fun, name = 'Data Collection Task', priority = 0,
 #                               period = 10, profile = True, trace = False)
-    
+
+#     cotask.task_list.append (task_parser)
     cotask.task_list.append (task_encoder1)
     cotask.task_list.append (task_encoder2)
     cotask.task_list.append (task_controller)
@@ -179,6 +197,7 @@ if __name__ == "__main__":
     tasks_start_time = time.ticks_ms()
     while True:
         try:
+            # run startupscript before scheduler?
             cotask.task_list.pri_sched ()
         except KeyboardInterrupt:
             break
