@@ -10,30 +10,44 @@
 import time
 
 # State Variables
-STATE_SERVO = 0
-STATE_MOTOR = 1
+_STATE_SERVO = 0
+_STATE_MOTOR = 1
 
-servo_wait = 1000 # ms
-servo_set_point = 2
+# Servo run variables
+##  @brief wait time for servo to reach set point before continuing to draw
+SERVO_WAIT = 1000 # ms
+
+
+# Set Point Queue variable locations
+_MOTOR1 = 0
+_MOTOR2 = 1
+_SERVO = 2
+
+_MOTORS [_MOTOR1, _MOTOR2]
 
 # Servo Setpoints
-UP = False
-DOWN = True
+_UP = False
+_DOWN = True
 
+# Servo pwm values
+##  @brief The servo pwm location to move to when the pen is up
 MOVE_UP = 30
+##  @brief The servo pwm location to move to when the pen is down
 MOVE_DOWN = 10
 
 
 
 class PIDController:
     '''! 
-    This class implements a PID controller. It contains methods for calculating
-    the actuation value and setting the Kp, Ki, and Kd gains. 
+    This class implements a PID controller to run a pen plotter.
+    It contains methods for calculating the actuation value 
+    and setting the Kp, Ki, and Kd gains. 
     ''' 
     
     def __init__ (self, Kp, Ki, Kd, set_point_queue, sensor_share1, sensor_share2):
         '''! 
-        Creates a proportional controller by initializing controller gains
+        Creates a PID controller by initializing controller gains and storing
+        the queue of setpoints and (2) shares with sensor data. 
         
         @param Kp               The proportional gain for the controller.
                                 Units of (dutyCycle/ticks)
@@ -56,15 +70,21 @@ class PIDController:
         self._Ki = Ki
         self._Kd = Kd
         self._sensor_share = [sensor_share1, sensor_share2]
+
+        ##  @brief  Current controller state (servo / motor).
+        self.state = _STATE_MOTOR
+        ##  @brief  Current state of the servo (up false / down true).
+        self.curr_servo_state = _UP
         
         ##  @brief      Tuple with current set point. Where the motor set points
         #               are in ticks and the pen position is a boolean.
         #               (theta_1, theta_2, Pen)
         self.curr_set_point = (None, None, None)
         
-        
-        ##  @brief      Step response start time for each motor
-        self.step_start_time = [None, None]
+        # Step response start time for each motor
+        self._step_start_time = [None, None]
+        # Step response start time for the servo
+        self._servo_start_time = None
         
         # Store data to calculate actuation values
         self._error = [0, 0]
@@ -75,88 +95,115 @@ class PIDController:
 #         ##  @brief Data Collection Start Time
 #         self.data_start_time = [None, None]
         
-        ##  @brief
-        self.curr_servo_state = UP
+
         
         
-    def run(self, motorID):
+    def run(self):
         '''! 
         Continuously runs the control algorithm. Reads the position data from a
         sensor and then finds the error between the actual position and the 
-        desired setpoint value. Then we append the stored data list with a
-        tuple of values.
+        desired set point value. When the setpoint value is reached, the next
+        set point is read from the queue. When the pen state (up/down) changes,
+        the motors stop until the servo reaches the desired state/
         
-        @return The actuation value to fix steady state error.
+        @return The actuation value to fix steady state error. When in the servo
+                state, the actuation value is the servo pwm. If the actuation
+                value is True, then the state changes to motor. When in the
+                motor state, then actuation value is a tuple for motors (1, 2)
+                of the duty cycle. If the actuation value is False,
+                then the state changes to servo.
         '''
-        if self.state == STATE_SERVO:
-            # in this state, the servo is controlled
+        # There are two states, the servo and the motor. When the servo reaches
+        # its position, the state changes to the motors. When both motors reach
+        # their setpoint, the next set of setpoints are loaded. If the pen state
+        # changes, then the state changes back to the servo, if the pen state
+        # does not change then the state remains at motor.
+        
+        
+        # in this state, the servo is controlled
+        if self.state == _STATE_SERVO:
+                        
+            # First, store the servo step start time
             if self._servo_start_time == None:
                 self._servo_start_time = time.ticks_ms()
             
-            if self._set_point[servo_set_point] == False:
+            # then toggle the servo setpoint to up or down. The servo pwm
+            # locations are defined above.
+            if self.curr_set_point[_SERVO] == _UP:
                 actuation_value = MOVE_UP
-                self.curr_servo_state = UP
-            elif self._set_point[servo_set_point] == True:
+                self.curr_servo_state = _UP
+            elif self.curr_set_point[_SERVO] == _DOWN:
                 actuation_value = MOVE_DOWN 
-                self.curr_servo_state = DOWN
-                
-            if time.ticks_diff(time.ticks_ms, self._servo_start_time) >= servo_wait:
+                self.curr_servo_state = _DOWN
+            
+            # after the set servo step time the state changes to motor 
+            if time.ticks_diff(time.ticks_ms, self._servo_start_time) >= SERVO_WAIT:
                 self._servo_start_time = None
-                self.state = STATE_MOTOR
+                self.state = _STATE_MOTOR
                 actuation_value = True
                 
                 
-            
-        elif self.state == STATE_MOTOR:
-            # In this state, the motors are controlled.
-                         
+        # In this state, the motors are controlled.    
+        elif self.state == _STATE_MOTOR:
+                                 
             # Check if current set point has been reached, if it has, then the
             # setpoint is changed to the new point
-            if abs(self._error[0]) < 100 and abs(self._error[1]) < 100:
-                self._curr_set_point = self._set_point_queue.get()
-                self.step_start_time = [None, None]
+            if abs(self._error[_MOTOR1]) < 100 and abs(self._error[_MOTOR2]) < 100:
+                self.curr_set_point = self._set_point_queue.get()
+                self._step_start_time = [None, None]
                 self._error = [0, 0]
-                if self.curr_servo_state != self._set_point[servo_set_point]:
-                    self.state = STATE_SERVO
+                
+                # if in the new set point the pen position changes, then the
+                # state changes to servo to toggle the pen location.
+                if self.curr_servo_state != self.curr_set_point[_SERVO]:
+                    self.state = _STATE_SERVO
                     actuation_value = False
                     
-            
+            # If the current set point has not been reached, then the actuation
+            # value is calculated for each motor.
             else: 
-                # Store initial step time
-                if self.step_start_time[motorID] == None:
-                    self.step_start_time[motorID] = time.ticks_ms()
-                    self._last_time[motorID] = self.step_start_time[motorID]
                 
-                # Calculate the current error in position
-                self._error[motorID] = self._sensor_share[motorID].get() - self._set_point[motorID]
-                curr_time = time.ticks_diff(time.ticks_ms(),self.step_start_time[motorID])
-                
-                
-                # Calculate the PID actuation value
-                Pduty = -self._Kp*self._error[motorID]
-                
-                _Iduty_new = self._Ki*self._error[motorID]*(curr_time - self._last_time[motorID])
-                if (self._Iduty[motorID] > 0 and _Iduty_new < 0) \
-                    or  (self._Iduty[motorID] < 0 and _Iduty_new > 0):
-                    self._Iduty[motorID] = _Iduty_new
-                else:
-                    self._Iduty[motorID] += _Iduty_new
-                
-                Dduty = self._Kd*(self._error[motorID]-self._last_error[motorID])/(curr_time - self._last_time[motorID])
-                
-                actuation_value = Pduty + self._Iduty[motorID] + Dduty
-                
-                
-                # Filter saturated values
-                if actuation_value > 100:
-                    actuation_value = 100
-                elif actuation_value < -100:
-                    actuation_value = -100
-                
-                # Store values for next iteration
-                self._last_error[motorID] = self._error[motorID]
-                self._last_time[motorID] = curr_time
-                       
+                for motorID in _MOTORS: 
+                    # Store initial motor step time
+                    if self._step_start_time[motorID] == None:
+                        self._step_start_time[motorID] = time.ticks_ms()
+                        self._last_time[motorID] = self._step_start_time[motorID]
+                    
+                    # Calculate the current error in position
+                    self._error[motorID] = self._sensor_share[motorID].get() - self.curr_set_point[motorID]
+                    curr_time = time.ticks_diff(time.ticks_ms(),self._step_start_time[motorID])
+                    
+                    
+                    # Calculate the PID actuation value
+                    
+                    # Proportional actiation value
+                    Pduty = -self._Kp*self._error[motorID]
+                    
+                    # Integral actuation value
+                    _Iduty_new = self._Ki*self._error[motorID]*(curr_time - self._last_time[motorID])
+                    if (self._Iduty[motorID] > 0 and _Iduty_new < 0) \
+                        or  (self._Iduty[motorID] < 0 and _Iduty_new > 0):
+                        self._Iduty[motorID] = _Iduty_new
+                    else:
+                        self._Iduty[motorID] += _Iduty_new
+                    
+                    # Differential actuation value
+                    Dduty = self._Kd*(self._error[motorID]-self._last_error[motorID])/(curr_time - self._last_time[motorID])
+                    
+                    # PID actuation value
+                    actuation_value[motorID] = Pduty + self._Iduty[motorID] + Dduty
+                    
+                    
+                    # Filter saturated values
+                    if actuation_value[motorID] > 100:
+                        actuation_value[motorID] = 100
+                    elif actuation_value[motorID] < -100:
+                        actuation_value[motorID] = -100
+                    
+                    # Store values for next iteration
+                    self._last_error[motorID] = self._error[motorID]
+                    self._last_time[motorID] = curr_time
+                           
             
         return actuation_value
 

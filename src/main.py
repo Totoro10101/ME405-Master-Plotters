@@ -12,26 +12,47 @@
 @copyright (c) 2015-2021 by JR Ridgely and released under the GNU
     Public License, Version 2. 
 """
-
-import gc
 import pyb
-import cotask
-import task_share
-import print_task
 import time
-import encoder
+import gc
+
+import task_share
+import cotask
+
 import task_startup
-import task_controller
 import task_parser
+import encoder
+import task_controller
+# import print_task
+
 
 _PPR = 256*4*16
+
 kp = 0.9*(360/_PPR)
 ki = 0*(360/_PPR)
 kd = 0*(360/_PPR)
+
 # Read time length of step response from serial port
 # _stepResponseTime = 1.5*1000  #ms
-MOTOR1 = 0
-MOTOR2 = 1
+
+# Motor IDs
+_MOTOR1 = 0
+_MOTOR2 = 1
+
+# Controller states
+_SERVO = 0
+_MOTOR = 1
+
+# def task_startup_fun():
+#     """!
+#     Task which zeros the pen plotter
+#     """
+
+# def task_parser_fun():
+#     """
+#     Task which converts HPGL code describing the drawing to setpoints for the
+#     controller.
+#     """
 
 def task_enc1_fun():
     """!
@@ -54,26 +75,31 @@ def task_controller_fun ():
     Task that runs a PID controller.
     """
     while True:
-        if controller_state == SERVO:
-            act = pidController.run(None)
+        controller_state = _MOTOR
+        
+        if controller_state == _SERVO:
+            act = pidController.run()
             if act == True:
-                controller_state == MOTOR:
+                controller_state == _MOTOR:
             else:
-                servo.set_pwm()
-            
+                try:
+                    servo.set_pwm(act)
+                except ValueError:
+                    print("Servo Value Error: {:}".format(act))
         
-        if controller_state == MOTOR:
-            duty1 = pidController.run(MOTOR1)
-            duty2 = pidController.run(MOTOR2)
-        
-            if duty1 == False or duty2 == False 
+        elif controller_state == _MOTOR:
+            duty = pidController.run()      
+            if duty == False  
                 motor1.set_duty_cycle(0)
                 motor2.set_duty_cycle(0)
-                controller_state = SERVO
+                controller_state = _SERVO
             else:
-                motor1.set_duty_cycle(duty1)
-                motor2.set_duty_cycle(duty2)
-            
+                try:
+                    motor1.set_duty_cycle(duty[_MOTOR1])
+                    motor2.set_duty_cycle(duty[_MOTOR2])
+                except ValueError:
+                    print("Servo Value Error: {:}".format(duty))
+                    
         yield ()
         
 # def task_data1_fun ():
@@ -89,6 +115,7 @@ def task_controller_fun ():
 
 # This code creates a share for each encoder object, creates encoder objects to read from, creates controller
 # objects and sets the gain and set point positions. 
+
 if __name__ == "__main__":
 
     # Create 2 encoder shares to share position data.
