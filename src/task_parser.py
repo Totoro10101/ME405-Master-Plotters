@@ -80,22 +80,25 @@ class Parser:
             
             n = 3
             i = 0
-            coord_queue = task_share.Queue()
+            _prev_com = self._up  # Stores the previous pen command
+            coord_queue = task_share.Queue('b', 10000, thread_protect = True, overwrite = False)
             
             while i <= len(all_coords):
                 if all_coords[i] == 'PU':
                     n = 3
-                    coord_queue.put((all_coords[i+1], all_coords[i+2], _up))
+                    coord_queue.put((all_coords[i+1], all_coords[i+2], self._up))
+                    _prev_com = self._up
                     i = i + 3
                 elif all_coords[i] == 'PD':
                     n = 3
-                    coord_queue.put((all_coords[i+1], all_coords[i+2], _down))
+                    coord_queue.put((all_coords[i+1], all_coords[i+2], self._down))
+                    _prev_com = self._down
                     i = i + 3
                 else:
                     n = 2
-                    coord_queue.put((all_coords[i], all_coords[i+1], all_coords[i]))
+                    coord_queue.put((all_coords[i], all_coords[i+1], _prev_com))
+                    i = i + 2
             return coord_queue
-            print(coord_queue)
             
 if __name__ == '__main__':
     parser = Parser()
