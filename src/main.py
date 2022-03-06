@@ -34,6 +34,8 @@ kp = 0.9*(360/_PPR)
 ki = 0*(360/_PPR)
 kd = 0*(360/_PPR)
 
+_pully_pitch_diameter = 16*2/3.14
+
 # Read time length of step response from serial port
 # _stepResponseTime = 1.5*1000  #ms
 
@@ -41,13 +43,39 @@ kd = 0*(360/_PPR)
 _MOTOR1 = 0
 _MOTOR2 = 1
 
-# Controller states
-_SERVO = 0
-_MOTOR = 1
 
+# Servo pwm values
+##  @brief The servo pwm location to move to when the pen is up
+_UP = 8
+##  @brief The servo pwm location to move to when the pen is down
+_DOWN = 7
+
+def startup():
+    '''!
+    This method will initialize the pen plotter.
+    
+    This process includes running the motors until the limit switches are
+    triggered. 
+    '''
+    servo.set_angle(_UP)
+    limit1_share.put(False)
+    limit2_share.put(False)
+    
+    while not limit1_share.get() and not limit2_share.get():
+        # stop motors while moving pen
+        # one is negative because one rotates clockwise positive and the
+        # rotates clockwise negative
+        motor1.set_duty_cycle(50)
+        motor2.set_duty_cycle(-50)
+    
+    motor1.set_duty_cycle(0)
+    motor2.set_duty_cycle(0)
+    encoder1.set_position(330/_pully_pitch_diameter/2/3.14*_PPR)
+    encoder2.set_position(330/_pully_pitch_diameter/2/3.14*_PPR)
+    
 
 def onLimit1PressFCN(IRQ_src):
-    '''@brief       Sets buttonFlag True when button is pushed.
+    '''!@brief       Sets buttonFlag True when button is pushed.
        @details     Used as the callback function for the interrupt.
                     Records that the button was pressed.
        @param       IRQ_src Source of the interrupt. Required by MicroPython
@@ -56,7 +84,7 @@ def onLimit1PressFCN(IRQ_src):
     limit1_share.put(True)
     
 def onLimit2PressFCN(IRQ_src):
-    '''@brief       Sets buttonFlag True when button is pushed.
+    '''!@brief       Sets buttonFlag True when button is pushed.
        @details     Used as the callback function for the interrupt.
                     Records that the button was pressed.
        @param       IRQ_src Source of the interrupt. Required by MicroPython
@@ -66,7 +94,7 @@ def onLimit2PressFCN(IRQ_src):
 
 
 # def task_parser_fun():
-#     """
+#     """!
 #     Task which converts HPGL code describing the drawing to setpoints for the
 #     controller.
 #     """
@@ -92,31 +120,25 @@ def task_controller_fun ():
     Task that runs a PID controller.
     """
     while True:
-        controller_state = _MOTOR
-        
-        if controller_state == _SERVO:
-            act = pidController.run()
-            if act == True:
-                controller_state == _MOTOR:
-            else:
-                try:
-                    servo.set_angle(act)
-                except ValueError:
-                    print("Servo Value Error: {:}".format(act))
-        
-        elif controller_state == _MOTOR:
-            duty = pidController.run()      
-            if duty == False  
+    
+        if pidcontroller.check_finish_step():
+            curr_set_point = set_point_queue.get()
+            pidcontroller.set_set_point(curr_set_point)
+            
+            if curr_set_point[_SERVO] != curr_servo_state:
+                # stop motors while moving pen
                 motor1.set_duty_cycle(0)
                 motor2.set_duty_cycle(0)
-                controller_state = _SERVO
-            else:
-                try:
-                    motor1.set_duty_cycle(duty[_MOTOR1])
-                    motor2.set_duty_cycle(duty[_MOTOR2])
-                except ValueError:
-                    print("Servo Value Error: {:}".format(duty))
-                    
+                
+                curr_servo_state = curr_set_point[_SERVO]
+                if not curr_servo_state:
+                    servo.set_angle(_UP)
+                if curr_servo_state:
+                    servo.set_angle(_DOWN)
+        else:
+            motor1.set_duty_cycle(duty[_MOTOR1])
+            motor2.set_duty_cycle(duty[_MOTOR2])
+                               
         yield ()
         
 # def task_data1_fun ():
@@ -161,9 +183,9 @@ if __name__ == "__main__":
     pinC3 = pyb.Pin(pyb.Pin.cpu.C3)
     ## \hideinitializer
     LimitInt1 = pyb.ExtInt(pinC2, mode=pyb.ExtInt.IRQ_RISING,
-                           pull=pyb.Pin.PULL_UP, callback=onLimit1PressFCN)
+                           pull=pyb.Pin.PULL_DOWN, callback=onLimit1PressFCN)
     LimitInt2 = pyb.ExtInt(pinC3, mode=pyb.ExtInt.IRQ_RISING,
-                           pull=pyb.Pin.PULL_UP, callback=onLimit2PressFCN) 
+                           pull=pyb.Pin.PULL_DOWN, callback=onLimit2PressFCN) 
     
     # Instantiate servo
     servo1 = servo.Servo(pin1 = pyb.Pin.board.PA6,
@@ -181,7 +203,7 @@ if __name__ == "__main__":
     
     
     # Instantiate proportional controllers with initial gains  
-    pidController = task_controller.PIDController(set_point_Queue, 1, 0, 0,
+    pidController = task_controller.PIDController(1, 0, 0, (0,0,False)
                                                   encoder1_share, encoder2_share)
     pidController.set_gains(kp, ki, kd)
     
@@ -206,23 +228,16 @@ if __name__ == "__main__":
     
 #     task_data1 = cotask.Task (task_data1_fun, name = 'Data Collection Task', priority = 0,
 #                               period = 10, profile = True, trace = False)
-
-
-
-    # Zero the plotter at startup:
-    limit1_share.put(False)
-    limit2_share.put(False)
-    
-    
+ 
     
     
     
     
     
 #     cotask.task_list.append (task_parser)
-    cotask.task_list.append (task_encoder1)
-    cotask.task_list.append (task_encoder2)
-    cotask.task_list.append (task_controller)
+#     cotask.task_list.append (task_encoder1)
+#     cotask.task_list.append (task_encoder2)
+#     cotask.task_list.append (task_controller)
 
 #     cotask.task_list.append (task_data1)
 
@@ -235,6 +250,7 @@ if __name__ == "__main__":
     
     while True:
         try:
+            startup()
             # run startupscript before scheduler?
             cotask.task_list.pri_sched ()
         except KeyboardInterrupt:

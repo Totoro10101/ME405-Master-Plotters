@@ -78,6 +78,14 @@ class EncoderDriver:
         '''
         self.position = 0
         
+    def set_position(self, position):
+        '''!
+        Sets encoder position to the input.
+
+        @param position Encoder position in ticks.
+        '''
+        self.position = position
+        
 if __name__ == '__main__':
     
     import time
