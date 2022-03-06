@@ -23,7 +23,7 @@ _MOTOR1 = 0
 _MOTOR2 = 1
 _SERVO = 2
 
-_MOTORS [_MOTOR1, _MOTOR2]
+_MOTORS = [_MOTOR1, _MOTOR2]
 
 # Servo Setpoints
 _UP = False
@@ -31,9 +31,9 @@ _DOWN = True
 
 # Servo pwm values
 ##  @brief The servo pwm location to move to when the pen is up
-MOVE_UP = 30
+MOVE_UP = 8
 ##  @brief The servo pwm location to move to when the pen is down
-MOVE_DOWN = 10
+MOVE_DOWN = 7
 
 
 
@@ -243,3 +243,6 @@ class PIDController:
 #         if self.data_start_time == None:
 #             self.data_start_time = time.ticks_ms()
 #         return f"{time.ticks_diff(time.ticks_ms(),self.data_start_time)},{self._sensor_share.get()}\n"
+
+
+
