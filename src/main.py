@@ -22,6 +22,8 @@ import cotask
 import task_startup
 import task_parser
 import encoder
+import motor
+import servo
 import task_controller
 # import print_task
 
@@ -43,10 +45,25 @@ _MOTOR2 = 1
 _SERVO = 0
 _MOTOR = 1
 
-# def task_startup_fun():
-#     """!
-#     Task which zeros the pen plotter
-#     """
+
+def onLimit1PressFCN(IRQ_src):
+    '''@brief       Sets buttonFlag True when button is pushed.
+       @details     Used as the callback function for the interrupt.
+                    Records that the button was pressed.
+       @param       IRQ_src Source of the interrupt. Required by MicroPython
+                            for callback functions, but unused.
+    '''
+    limit1_share.put(True)
+    
+def onLimit2PressFCN(IRQ_src):
+    '''@brief       Sets buttonFlag True when button is pushed.
+       @details     Used as the callback function for the interrupt.
+                    Records that the button was pressed.
+       @param       IRQ_src Source of the interrupt. Required by MicroPython
+                            for callback functions, but unused.
+    '''
+    limit2_share.put(True)
+
 
 # def task_parser_fun():
 #     """
@@ -83,7 +100,7 @@ def task_controller_fun ():
                 controller_state == _MOTOR:
             else:
                 try:
-                    servo.set_pwm(act)
+                    servo.set_angle(act)
                 except ValueError:
                     print("Servo Value Error: {:}".format(act))
         
@@ -122,6 +139,11 @@ def task_controller_fun ():
 
 if __name__ == "__main__":
 
+
+    # Create 2 limit switch shares to share limit switch condition.
+    limit1_share = task_share.Share('b', thread_protect = False, name = "Limit 1 Share")
+    limit2_share = task_share.Share('b', thread_protect = False, name = "Limit 2 Share")
+    
     # Create 2 encoder shares to share position data.
     encoder1_share = task_share.Share('i', thread_protect = False, name = "Encoder 1 Share")
     encoder2_share = task_share.Share('i', thread_protect = False, name = "Encoder 2 Share")
@@ -134,10 +156,18 @@ if __name__ == "__main__":
     encoder1 = encoder.EncoderDriver(pyb.Pin.cpu.B6, pyb.Pin.cpu.B7, 4)
     encoder2 = encoder.EncoderDriver(pyb.Pin.cpu.C6, pyb.Pin.cpu.C7, 8)
     
-    # Instantiate limit switches? <-----may go in startup task
+    # Instantiate limit switches
+    pinC2 = pyb.Pin(pyb.Pin.cpu.C2)
+    pinC3 = pyb.Pin(pyb.Pin.cpu.C3)
+    ## \hideinitializer
+    LimitInt1 = pyb.ExtInt(pinC2, mode=pyb.ExtInt.IRQ_RISING,
+                           pull=pyb.Pin.PULL_UP, callback=onLimit1PressFCN)
+    LimitInt2 = pyb.ExtInt(pinC3, mode=pyb.ExtInt.IRQ_RISING,
+                           pull=pyb.Pin.PULL_UP, callback=onLimit2PressFCN) 
     
     # Instantiate servo
-    
+    servo1 = servo.Servo(pin1 = pyb.Pin.board.PA6,
+                         timer = pyb.Timer(3, freq=50), timerChannel = 1)
     
     # Instantiate motors with default pins and timer
     motor1 = motor.MotorDriver(pyb.Pin.board.PA10, pyb.Pin.board.PB4,
@@ -146,8 +176,6 @@ if __name__ == "__main__":
                                pyb.Pin.board.PA1, pyb.Timer(5, freq=20000))
     
     
-    
-    # Instantiate startup task
     
     # Instantiate parser task
     
@@ -166,9 +194,6 @@ if __name__ == "__main__":
     # of memory after a while and quit. Therefore, use tracing only for 
     # debugging and set trace to False when it's not needed
 
-# startup task only runs once, so we may not want to add to the scheduler? 
-#     task_startup = cotask.Task (task_startup_fun, name = 'StartUp_Task', priority = 4, 
-#                          period = 10, profile = True, trace = False)
 
 #     task_parser = cotask.Task (task_parser_fun, name = 'Parser_Task', priority = 2, 
 #                          period = 100, profile = True, trace = False)
@@ -182,6 +207,18 @@ if __name__ == "__main__":
 #     task_data1 = cotask.Task (task_data1_fun, name = 'Data Collection Task', priority = 0,
 #                               period = 10, profile = True, trace = False)
 
+
+
+    # Zero the plotter at startup:
+    limit1_share.put(False)
+    limit2_share.put(False)
+    
+    
+    
+    
+    
+    
+    
 #     cotask.task_list.append (task_parser)
     cotask.task_list.append (task_encoder1)
     cotask.task_list.append (task_encoder2)
@@ -194,7 +231,8 @@ if __name__ == "__main__":
     gc.collect ()
 
     # Run the scheduler with the chosen scheduling algorithm. Quit if KeyboardInterrupt
-    tasks_start_time = time.ticks_ms()
+#     tasks_start_time = time.ticks_ms()
+    
     while True:
         try:
             # run startupscript before scheduler?
