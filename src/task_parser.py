@@ -40,7 +40,7 @@ def read():
                             all_coords.append(separate_commands[n])  # further split the values to not put lists inside of lists
         print(all_coords)
         new_coords = []
-        twodim_array = []
+        plot_array = []
         for i in range(len(all_coords)):
             if 'IN' in all_coords[i]:
                 # print("Initialize")
