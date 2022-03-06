@@ -74,39 +74,37 @@ class Parser:
                         all_coords.append(separate_commands[n])  # further split the values to not put lists inside of lists
             print(all_coords)
             
-            # Attempt to convert all values to ints in order to perform arithmetic
-            for i in range(len(all_coords)):
-                if not int(all_coords[i]):
-                    pass
-                else:
-                    int(all_coords[i])       
-            print(all_coords)
-            
             # Process the all_coords list to put it into a list that is structured as
             # (r1, r2, pen) where the radiuses will determine how much to spin the motor
             # and pen will indicate whether it is up or down.
             
-#             n = 3
-#             i = 0
-#             _prev_com = self._up  # Stores the previous pen command of up or down
-#             coord_queue = task_share.Queue('i', 10000, thread_protect = True, overwrite = False)
-#             
-#             while i <= len(all_coords):
-#                 if all_coords[i] == 'PU':
-#                     n = 3
-#                     coord_queue.put((int(all_coords[i+1]), int(all_coords[i+2]), self._up))
-#                     _prev_com = self._up
-#                     i = i + 3
-#                 elif all_coords[i] == 'PD':
-#                     n = 3
-#                     coord_queue.put((int(all_coords[i+1]), int(all_coords[i+2]), self._down))
-#                     _prev_com = self._down
-#                     i = i + 3
-#                 else:
-#                     n = 2
-#                     coord_queue.put((int(all_coords[i]), int(all_coords[i+1]), _prev_com))
-#                     i = i + 2
-#             return coord_queue
+            n = 3
+            i = 0
+            _prev_com = self._up  # Stores the previous pen command of up or down
+            coord_queue = task_share.Queue('i', 10000, thread_protect = True, overwrite = False)
+            
+            while i <= len(all_coords):
+                if all_coords[i] == 'PU':  
+                    n = 3
+                    r1 = int(all_coords[i+1])/40  #convert dpi from hpgl to mm
+                    r2 = int(all_coords[i+2])/40
+                    coord_queue.put((r1, r2, self._up))
+                    _prev_com = self._up
+                    i = i + 3
+                elif all_coords[i] == 'PD':
+                    n = 3
+                    r1 = int(all_coords[i+1])/40
+                    r2 = int(all_coords[i+2])/40
+                    coord_queue.put((r1, r2, self._down))
+                    _prev_com = self._down
+                    i = i + 3
+                else:
+                    n = 2
+                    r1 = int(all_coords[i])/40
+                    r2 = int(all_coords[i+1])/40
+                    coord_queue.put((r1, r2, _prev_com))
+                    i = i + 2
+            return coord_queue
             
 if __name__ == '__main__':
     parser = Parser()
