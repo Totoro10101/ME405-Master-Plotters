@@ -19,8 +19,7 @@ import gc
 import task_share
 import cotask
 
-import task_startup
-import task_parser
+# import task_parser
 import encoder
 import motor
 import servo
@@ -57,19 +56,40 @@ def startup():
     This process includes running the motors until the limit switches are
     triggered. 
     '''
-    servo.set_angle(_UP)
-    limit1_share.put(False)
-    limit2_share.put(False)
-    
-    while not limit1_share.get() and not limit2_share.get():
-        # stop motors while moving pen
-        # one is negative because one rotates clockwise positive and the
-        # rotates clockwise negative
-        motor1.set_duty_cycle(50)
-        motor2.set_duty_cycle(-50)
-    
-    motor1.set_duty_cycle(0)
-    motor2.set_duty_cycle(0)
+    print('pen up')
+    servo1.set_angle(_UP)
+    print('zero limit switches')
+
+    print('zeroed limit switches')
+#     motor1.set_duty_cycle(70)
+#     motor2.set_duty_cycle(-70)
+    m = 1
+    n=1
+    o =1
+    while not limit1_share.get() or not limit2_share.get():
+        if o==1:
+            print('while')
+            o=2
+#         print(limit1_share.get(), limit2_share.get())
+        if limit1_share.get():
+            if m==1:
+                print('motor1')
+                m=2
+            # stop motors while moving pen
+            # one is negative because one rotates clockwise positive and the
+            # rotates clockwise negative
+#             motor1.set_duty_cycle(0)
+        if limit2_share.get():
+            if n==1:
+                print('motor2')
+                n=2
+            # stop motors while moving pen
+            # one is negative because one rotates clockwise positive and the
+            # rotates clockwise negative
+#             motor2.set_duty_cycle(0)
+        
+        
+    print('zeroed')
     encoder1.set_position(330/_pully_pitch_diameter/2/3.14*_PPR)
     encoder2.set_position(330/_pully_pitch_diameter/2/3.14*_PPR)
     
@@ -81,7 +101,11 @@ def onLimit1PressFCN(IRQ_src):
        @param       IRQ_src Source of the interrupt. Required by MicroPython
                             for callback functions, but unused.
     '''
-    limit1_share.put(True)
+    if not limit1_share.get():
+        print('lim1')
+    limit1_share.put(1)
+    
+    
     
 def onLimit2PressFCN(IRQ_src):
     '''!@brief       Sets buttonFlag True when button is pushed.
@@ -90,7 +114,11 @@ def onLimit2PressFCN(IRQ_src):
        @param       IRQ_src Source of the interrupt. Required by MicroPython
                             for callback functions, but unused.
     '''
-    limit2_share.put(True)
+    if not limit2_share.get():
+        print('lim2')
+    limit2_share.put(1)
+
+
 
 
 # def task_parser_fun():
@@ -132,13 +160,14 @@ def task_controller_fun ():
                 
                 curr_servo_state = curr_set_point[_SERVO]
                 if not curr_servo_state:
-                    servo.set_angle(_UP)
+                    servo1.set_angle(_UP)
                 if curr_servo_state:
-                    servo.set_angle(_DOWN)
+                    servo1.set_angle(_DOWN)
         else:
             motor1.set_duty_cycle(duty[_MOTOR1])
             motor2.set_duty_cycle(duty[_MOTOR2])
-                               
+              
+        print('controller')
         yield ()
         
 # def task_data1_fun ():
@@ -163,15 +192,15 @@ if __name__ == "__main__":
 
 
     # Create 2 limit switch shares to share limit switch condition.
-    limit1_share = task_share.Share('b', thread_protect = False, name = "Limit 1 Share")
-    limit2_share = task_share.Share('b', thread_protect = False, name = "Limit 2 Share")
+    limit1_share = task_share.Share('i', thread_protect = False, name = "Limit 1 Share")
+    limit2_share = task_share.Share('i', thread_protect = False, name = "Limit 2 Share")
     
     # Create 2 encoder shares to share position data.
     encoder1_share = task_share.Share('i', thread_protect = False, name = "Encoder 1 Share")
     encoder2_share = task_share.Share('i', thread_protect = False, name = "Encoder 2 Share")
     
     # Create a Queue with set points (theta_1, theta_2, Pen_up/down) (ticks)
-    set_point_queue = task_share.Queue()
+    set_point_queue = task_share.Queue('i', 10)
     
     
     # Instantiate encoders with default pins and timer
@@ -203,7 +232,7 @@ if __name__ == "__main__":
     
     
     # Instantiate proportional controllers with initial gains  
-    pidController = task_controller.PIDController(1, 0, 0, (0,0,False)
+    pidController = task_controller.PIDController(1, 0, 0, (330/_pully_pitch_diameter/2/3.14*_PPR,330/_pully_pitch_diameter/2/3.14*_PPR,0),
                                                   encoder1_share, encoder2_share)
     pidController.set_gains(kp, ki, kd)
     
@@ -235,9 +264,9 @@ if __name__ == "__main__":
     
     
 #     cotask.task_list.append (task_parser)
-#     cotask.task_list.append (task_encoder1)
-#     cotask.task_list.append (task_encoder2)
-#     cotask.task_list.append (task_controller)
+    cotask.task_list.append (task_encoder1)
+    cotask.task_list.append (task_encoder2)
+    cotask.task_list.append (task_controller)
 
 #     cotask.task_list.append (task_data1)
 
@@ -247,11 +276,25 @@ if __name__ == "__main__":
 
     # Run the scheduler with the chosen scheduling algorithm. Quit if KeyboardInterrupt
 #     tasks_start_time = time.ticks_ms()
-    
-    while True:
-        try:
-            startup()
-            # run startupscript before scheduler?
-            cotask.task_list.pri_sched ()
-        except KeyboardInterrupt:
-            break
+    limit1_share.put(False)
+    limit2_share.put(False)
+    startup()
+    print('startup finished')
+#     try:
+# #         set_point_queue.put((5000, 5000, 0))
+# #         set_point_queue.put((8000, 8000, 0))
+#     except ValueError:
+#         print('value error in queue')
+#     finally:
+#         print('error')
+    print('queue')
+#     while True:
+#         try:
+#             # run startupscript before scheduler?
+#             cotask.task_list.pri_sched ()
+#             print('cotask')
+#         except KeyboardInterrupt:
+#             motor1.set_duty_cycle(0)
+#             motor2.set_duty_cycle(0)
+#             print('disabled')
+#             break
