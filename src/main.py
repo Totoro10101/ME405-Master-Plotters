@@ -150,22 +150,25 @@ def task_controller_fun ():
     while True:
     
         if pidcontroller.check_finish_step():
-            curr_set_point = set_point_queue.get()
-            pidcontroller.set_set_point(curr_set_point)
+            curr_theta1_sp = sp_theta1_queue.get()
+            curr_theta2_sp = sp_theta2_queue.get()
+            curr_pen_sp = sp_pen_queue.get()
             
-            if curr_set_point[_SERVO] != curr_servo_state:
+            pidcontroller.set_set_point((curr_theta1_sp, curr_theta2_sp))
+            
+            if curr_pen_sp != curr_servo_state:
                 # stop motors while moving pen
                 motor1.set_duty_cycle(0)
                 motor2.set_duty_cycle(0)
                 
-                curr_servo_state = curr_set_point[_SERVO]
+                curr_servo_state = curr_pen_sp
                 if not curr_servo_state:
                     servo1.set_angle(_UP)
                 if curr_servo_state:
                     servo1.set_angle(_DOWN)
         else:
-            motor1.set_duty_cycle(duty[_MOTOR1])
-            motor2.set_duty_cycle(duty[_MOTOR2])
+            motor1.set_duty_cycle(pidcontroller.run(_MOTOR1))
+            motor2.set_duty_cycle(pidcontroller.run(_MOTOR2))
               
         print('controller')
         yield ()
@@ -200,7 +203,9 @@ if __name__ == "__main__":
     encoder2_share = task_share.Share('i', thread_protect = False, name = "Encoder 2 Share")
     
     # Create a Queue with set points (theta_1, theta_2, Pen_up/down) (ticks)
-    set_point_queue = task_share.Queue('i', 10)
+    sp_theta1_queue = task_share.Queue('i', 1000)
+    sp_theta2_queue = task_share.Queue('i', 1000)
+    sp_pen_queue = task_share.Queue('i', 1000)
     
     
     # Instantiate encoders with default pins and timer
@@ -281,8 +286,15 @@ if __name__ == "__main__":
     startup()
     print('startup finished')
 #     try:
-# #         set_point_queue.put((5000, 5000, 0))
-# #         set_point_queue.put((8000, 8000, 0))
+# #         sp_theta1_queue.put(5000)
+# #         sp_theta2_queue.put(5000)
+# #         sp_pen_queue.put(0)
+
+# #         sp_theta1_queue.put(8000)
+# #         sp_theta2_queue.put(8000)
+# #         sp_pen_queue.put(1)
+
+
 #     except ValueError:
 #         print('value error in queue')
 #     finally:
