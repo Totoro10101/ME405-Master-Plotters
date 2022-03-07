@@ -70,7 +70,7 @@ class EncoderDriver:
         # Record the current position for next iteration delta calculation
         self.position += delta
         
-        return self.position
+        return int(self.position)
     
     def zero(self):
         '''!Sets encoder position to zero. Sets the encoder position in ticks

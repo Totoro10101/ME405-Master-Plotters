@@ -13,12 +13,23 @@
 
 _UP = 0
 _DOWN = 1
-class Parser:
-    
-#     def __init__(self):
-#         self._up = 0
-#         self._down = 1
 
+_PPR = 256*16*4 # CPR * 16:1 gearbox * quadrature
+_PULLEY_TEETH = 16
+_BELT_PITCH = 2 # mm
+_PI = 3.14159
+
+_PULLEY_PITCH_RADIUS = _PULLEY_TEETH * _BELT_PITCH / _PI / 2
+_TICKS_PER_MM = _PPR / (2 * _PI) / _PULLEY_PITCH_RADIUS
+print(_TICKS_PER_MM)
+class Parser:
+
+    def __init__(self, sp_theta1_queue, sp_theta2_queue, sp_pen_queue):
+        self.th1q = sp_theta1_queue
+        self.th2q = sp_theta2_queue
+        self.penq = sp_pen_queue
+        
+        
     def read(self):
         ''' @brief   Reads data from a hpgl file.
             @details Reads each line of data and ignores input not relevant to the pen's position.
@@ -26,124 +37,33 @@ class Parser:
                      controller for setting set points for our motors.
         '''
         with open('test_rectangle.hpgl', 'r') as raw_hpgl:
-            split_hpgl = []
-            separate_commands = []
-            all_coords = []
-            continuous_coords = []
             for line in raw_hpgl:
                 split_hpgl = line.split(';')     #split the raw hpgl by the commands at the semi colons
-                print(split_hpgl)
+#                 print(split_hpgl)
                 
                 # This removes all initialize, pen color, and initial pen up commands
-                split_hpgl = [ ele for ele in split_hpgl if (ele != 'IN' and ele != 'SP1' and ele != 'PU')]
+                split_hpgl = [ ele for ele in split_hpgl if (ele != 'IN' and ele[:2] != 'SP' and ele != 'PU' and ele != ' ')]
                                 
-                print(split_hpgl) 
-                
+#                 print(split_hpgl) 
                 for ele in split_hpgl:
-                    if ele[:2]== 'PU':
+                    if ele[:2] == 'PU':
+                        pen_state = _UP
+                    elif ele[:2] == 'PD':
+                        pen_state = _DOWN
+                    else:
+#                         print(ele)
+                        raise ValueError("something other than PU/PD")
+                    coords = ele[2:].split(',')
+                    for i in range(0, len(coords), 2):
+                        x = int(coords[i]) / 40
+                        y = int(coords[i + 1]) / 40
+                        th1, th2 = transform(x, y)
+                        if not self.th1q.full():
+                            self.th1q.put(th1)
+#                             print(th1)
+                            self.th2q.put(th2)
+                            self.penq.put(pen_state)
                         
-                
-                split_hpgl = [(ele[2:].split(','), _UP) for ele in split_hpgl if ('PU' == ele[:2])]
-     
-                
-                print(split_hpgl)
-#                 for i in range(len(split_hpgl)):
-# #                     if 'IN' in split_hpgl[i]:
-# #                         # print("Initialize")
-# #                         pass
-#                     if 'PU' in split_hpgl[i]:
-#                         # print("Pen Up")
-#                         sep = split_hpgl[i].split('PU') # Removes PU from the command, will replace with 0
-# #                         sep[0] = 'PU'  # Pen is not touching the paper
-#                         # print(sep)
-#                         if sep[1] is '': # Pass the element if it is empty after split
-#                             pass
-#                         else:
-#                             separate_commands.append(sep[0])
-#                             separate_commands.append(sep[1])
-# #                     elif 'SP1' in split_hpgl[i]:
-# #                         # print("Select Pen")
-# #                         pass
-#                     elif 'PD' in split_hpgl[i]:
-#                         # print("Pen Down")
-#                         sep2 = split_hpgl[i].split('PD') # Removes PD and replaces with 1 to indicate pen is touching paper
-# #                         sep2[0] = 'PD'
-#                         # print(sep2)
-#                         separate_commands.append(sep2[0])
-#                         separate_commands.append(sep2[1])
-#                     else:
-#                         separate_commands.append(split_hpgl[i])
-#                         # split the individual items in the list s
-#                         # since HPGL puts out long continuous commands
-#                         # as a csv essentially.
-#             # print(separate_commands)
-#             for j in range(len(separate_commands)): # iterate through the list created by splitting at the commas
-#                 if len(separate_commands) >= 2:      # if it's got a length of more than 2, it shows that the pen plotter will be
-#                                                     # continuously moving in that pen state
-#                     continuous_coords = separate_commands[j].split(',') # split it so you can add the to a master list
-#                                                                         # of all the commands from the HPGL
-#                     for m in range(len(continuous_coords)):
-#                         all_coords.append(continuous_coords[m])  # add the separated coords to 
-#                 else:
-#                     for n in range(len(separate_commands)):
-#                         all_coords.append(separate_commands[n])  # further split the values to not put lists inside of lists
-#             print(all_coords)
-#             
-            # Process the all_coords list to put it into a list that is structured as
-            # (r1, r2, pen) where the radiuses will determine how much to spin the motor
-            # and pen will indicate whether it is up or down.
-#             
-#             n = 3
-#             i = 0
-#             _prev_com = self._up  # Stores the previous pen command of up or down
-#             _r_pulley = 16*2/3.14159    # mm
-#             _PPR = 256*4*16
-#             coord_queue = task_share.Queue('i', 10000, thread_protect = True, overwrite = False)
-#             
-#             while i <= len(all_coords):
-#                 if all_coords[i] == 'PU':  
-#                     n = 3
-#                     x1 = int(all_coords[i+1])/40  #convert dpi from hpgl to mm
-#                     y1 = int(all_coords[i+2])/40
-#                     calc = transform(x1,y1)
-#                     r1 = calc[0]
-#                     r2 = calc[1]
-#                     theta_rad1 = r1/_r_pulley
-#                     theta_rad2 = r2/_r_pulley
-#                     tix1 = theta_rad1*_PPR
-#                     tix2 = theta_rad2*_PPR
-#                     coord_queue.put((tix1, tix2, self._up))
-#                     _prev_com = self._up
-#                     i = i + 3
-#                 elif all_coords[i] == 'PD':
-#                     n = 3
-#                     x1 = int(all_coords[i+1])/40
-#                     y1 = int(all_coords[i+2])/40
-#                     calc = transform(x1,y1)
-#                     r1 = calc[0]
-#                     r2 = calc[1]
-#                     theta_rad1 = r1/_r_pulley
-#                     theta_rad2 = r2/_r_pulley
-#                     tix1 = theta_rad1*_PPR
-#                     tix2 = theta_rad2*_PPR
-#                     coord_queue.put((tix1, tix2, self._down))
-#                     _prev_com = self._down
-#                     i = i + 3
-#                 else:
-#                     n = 2
-#                     x1 = int(all_coords[i])/40
-#                     y1 = int(all_coords[i+1])/40
-#                     calc = transform(x1,y1)
-#                     r1 = calc[0]
-#                     r2 = calc[1]
-#                     theta_rad1 = r1/_r_pulley
-#                     theta_rad2 = r2/_r_pulley
-#                     tix1 = theta_rad1*_PPR
-#                     tix2 = theta_rad2*_PPR
-#                     coord_queue.put((tix1, tix2, _prev_com))
-#                     i = i + 2
-#             return coord_queue
-
 R = 263 #mm             # Distance between the motors
 y_home = 182.29999999999995 
 x_home = 122.67582590987534
@@ -168,11 +88,22 @@ def transform(x, y):
 
     r_1_pprime = ( (y_home+y)**2 + (x_home-x)**2)**0.5
     r_2_pprime = ( (y_home+y)**2 + (R-(x_home-x))**2)**0.5
+    
+    th1 = int(_TICKS_PER_MM * r_1_pprime)
+    th2 = int(_TICKS_PER_MM * r_2_pprime)
 
-    return(r_1_pprime, r_2_pprime)
+    return(th1, th2)
 
 if __name__ == '__main__':
-    parser = Parser()
+    import task_share
+    sp_theta1_queue = task_share.Queue('i', 1000)
+    sp_theta2_queue = task_share.Queue('i', 1000)
+    sp_pen_queue = task_share.Queue('i', 1000)
+#     
+    parser = Parser(sp_theta1_queue, sp_theta2_queue, sp_pen_queue)
+#     parser = Parser(sp_theta1_queue, sp_theta2_queue)
     parser.read()
+    print(sp_theta1_queue.get())
+    
     
                 

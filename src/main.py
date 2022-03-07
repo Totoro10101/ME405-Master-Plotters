@@ -24,6 +24,7 @@ import encoder
 import motor
 import servo
 import task_controller
+import test_parser
 # import print_task
 
 
@@ -59,14 +60,14 @@ def startup():
     print('pen up')
     servo1.set_angle(_UP)
     print('zero limit switches')
-
+    
     print('zeroed limit switches')
-#     motor1.set_duty_cycle(70)
-#     motor2.set_duty_cycle(-70)
+    motor1.set_duty_cycle(70)
+    motor2.set_duty_cycle(-70)
     m = 1
     n=1
     o =1
-    while not limit1_share.get() or not limit2_share.get():
+    while limit1_share.get() == 0 or limit2_share.get() == 0:
         if o==1:
             print('while')
             o=2
@@ -78,7 +79,7 @@ def startup():
             # stop motors while moving pen
             # one is negative because one rotates clockwise positive and the
             # rotates clockwise negative
-#             motor1.set_duty_cycle(0)
+            motor1.set_duty_cycle(0)
         if limit2_share.get():
             if n==1:
                 print('motor2')
@@ -86,10 +87,12 @@ def startup():
             # stop motors while moving pen
             # one is negative because one rotates clockwise positive and the
             # rotates clockwise negative
-#             motor2.set_duty_cycle(0)
+            motor2.set_duty_cycle(0)
         
         
     print('zeroed')
+    motor1.set_duty_cycle(0)
+    motor2.set_duty_cycle(0)
     encoder1.set_position(330/_pully_pitch_diameter/2/3.14*_PPR)
     encoder2.set_position(330/_pully_pitch_diameter/2/3.14*_PPR)
     
@@ -147,15 +150,16 @@ def task_controller_fun ():
     """!
     Task that runs a PID controller.
     """
+    curr_servo_state = 0
     while True:
     
-        if pidcontroller.check_finish_step():
+        if pidController.check_finish_step():
             curr_theta1_sp = sp_theta1_queue.get()
             curr_theta2_sp = sp_theta2_queue.get()
             curr_pen_sp = sp_pen_queue.get()
             
-            pidcontroller.set_set_point((curr_theta1_sp, curr_theta2_sp))
-            
+            pidController.set_set_point((curr_theta1_sp, curr_theta2_sp))
+        
             if curr_pen_sp != curr_servo_state:
                 # stop motors while moving pen
                 motor1.set_duty_cycle(0)
@@ -167,10 +171,14 @@ def task_controller_fun ():
                 if curr_servo_state:
                     servo1.set_angle(_DOWN)
         else:
-            motor1.set_duty_cycle(pidcontroller.run(_MOTOR1))
-            motor2.set_duty_cycle(pidcontroller.run(_MOTOR2))
+            duty1 = pidController.run(_MOTOR1)
+            motor1.set_duty_cycle(duty1)
+            motor2.set_duty_cycle(pidController.run(_MOTOR2))
+            print(duty1)
+            
+        print(curr_theta1_sp)
               
-        print('controller')
+#         print('controller')
         yield ()
         
 # def task_data1_fun ():
@@ -207,6 +215,7 @@ if __name__ == "__main__":
     sp_theta2_queue = task_share.Queue('i', 1000)
     sp_pen_queue = task_share.Queue('i', 1000)
     
+    parser = test_parser.Parser(sp_theta1_queue, sp_theta2_queue, sp_pen_queue)
     
     # Instantiate encoders with default pins and timer
     encoder1 = encoder.EncoderDriver(pyb.Pin.cpu.B6, pyb.Pin.cpu.B7, 4)
@@ -216,9 +225,9 @@ if __name__ == "__main__":
     pinC2 = pyb.Pin(pyb.Pin.cpu.C2)
     pinC3 = pyb.Pin(pyb.Pin.cpu.C3)
     ## \hideinitializer
-    LimitInt1 = pyb.ExtInt(pinC2, mode=pyb.ExtInt.IRQ_RISING,
+    LimitInt1 = pyb.ExtInt(pinC3, mode=pyb.ExtInt.IRQ_FALLING,
                            pull=pyb.Pin.PULL_DOWN, callback=onLimit1PressFCN)
-    LimitInt2 = pyb.ExtInt(pinC3, mode=pyb.ExtInt.IRQ_RISING,
+    LimitInt2 = pyb.ExtInt(pinC2, mode=pyb.ExtInt.IRQ_FALLING,
                            pull=pyb.Pin.PULL_DOWN, callback=onLimit2PressFCN) 
     
     # Instantiate servo
@@ -281,10 +290,13 @@ if __name__ == "__main__":
 
     # Run the scheduler with the chosen scheduling algorithm. Quit if KeyboardInterrupt
 #     tasks_start_time = time.ticks_ms()
-    limit1_share.put(False)
-    limit2_share.put(False)
+    limit1_share.put(0)
+    limit2_share.put(0)
     startup()
     print('startup finished')
+    
+    parser.read()
+    print('parser read')
 #     try:
 # #         sp_theta1_queue.put(5000)
 # #         sp_theta2_queue.put(5000)
@@ -299,14 +311,14 @@ if __name__ == "__main__":
 #         print('value error in queue')
 #     finally:
 #         print('error')
-    print('queue')
-#     while True:
-#         try:
-#             # run startupscript before scheduler?
-#             cotask.task_list.pri_sched ()
+#     print('queue')
+    while True:
+        try:
+            # run startupscript before scheduler?
+            cotask.task_list.pri_sched ()
 #             print('cotask')
-#         except KeyboardInterrupt:
-#             motor1.set_duty_cycle(0)
-#             motor2.set_duty_cycle(0)
-#             print('disabled')
-#             break
+        except KeyboardInterrupt:
+            motor1.set_duty_cycle(0)
+            motor2.set_duty_cycle(0)
+            print('disabled')
+            break
