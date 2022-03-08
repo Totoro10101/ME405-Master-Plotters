@@ -85,7 +85,7 @@ class PIDController:
             self._last_time[motorID] = self._step_start_time[motorID]
         
         # Calculate the current error in position
-        self._error[motorID] = self._sensor_share[motorID].get() - self.curr_set_point[motorID]
+        self._error[motorID] = self._sensor_share[motorID].get() - self._set_point[motorID]
         curr_time = time.ticks_diff(time.ticks_ms(),self._step_start_time[motorID])
         
         
@@ -106,21 +106,24 @@ class PIDController:
         Dduty = self._Kd*(self._error[motorID]-self._last_error[motorID])/(curr_time - self._last_time[motorID])
         
         # PID actuation value
-        actuation_value[motorID] = Pduty + self._Iduty[motorID] + Dduty
+        actuation_value = Pduty + self._Iduty[motorID] + Dduty
         
         
         # Filter saturated values
-        if actuation_value[motorID] > 100:
-            actuation_value[motorID] = 100
-        elif actuation_value[motorID] < -100:
-            actuation_value[motorID] = -100
+        if actuation_value > 100:
+            actuation_value = 100
+        elif actuation_value < -100:
+            actuation_value = -100
         
         # Store values for next iteration
         self._last_error[motorID] = self._error[motorID]
         self._last_time[motorID] = curr_time
                            
             
-        return actuation_value
+        if motorID == _MOTOR1:
+            return -actuation_value
+        elif motorID == _MOTOR2:
+            return actuation_value
 
 
     def set_gains(self, Kp, Ki, Kd):
@@ -165,7 +168,7 @@ class PIDController:
         @return a boolean is returned for if the setpoint has been reached.
         '''
         done = False
-        if abs(self._error[_MOTOR1]) < 100 and abs(self._error[_MOTOR2]) < 100:
+        if abs(self._error[_MOTOR1]) < 1000 and abs(self._error[_MOTOR2]) < 1000:
             self._step_start_time = [None, None]
             self._error = [0, 0]
             done = True

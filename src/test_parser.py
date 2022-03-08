@@ -21,7 +21,7 @@ _PI = 3.14159
 
 _PULLEY_PITCH_RADIUS = _PULLEY_TEETH * _BELT_PITCH / _PI / 2
 _TICKS_PER_MM = _PPR / (2 * _PI) / _PULLEY_PITCH_RADIUS
-print(_TICKS_PER_MM)
+# print(_TICKS_PER_MM)
 class Parser:
 
     def __init__(self, sp_theta1_queue, sp_theta2_queue, sp_pen_queue):
@@ -58,6 +58,7 @@ class Parser:
                         x = int(coords[i]) / 40
                         y = int(coords[i + 1]) / 40
                         th1, th2 = transform(x, y)
+#                         print(x, y, th1, th2, pen_state)
                         if not self.th1q.full():
                             self.th1q.put(th1)
 #                             print(th1)
@@ -65,8 +66,8 @@ class Parser:
                             self.penq.put(pen_state)
                         
 R = 263 #mm             # Distance between the motors
-y_home = 182.29999999999995 
-x_home = 122.67582590987534
+x_home = 80.7
+y_home = 122.676
 
 def transform(x, y):
     '''!
@@ -86,24 +87,21 @@ def transform(x, y):
     # we can then calcualte the radius (mm) needed to reach any point
     # x,y (mm) on the board
 
-    r_1_pprime = ( (y_home+y)**2 + (x_home-x)**2)**0.5
-    r_2_pprime = ( (y_home+y)**2 + (R-(x_home-x))**2)**0.5
+    r_1 = ((y_home+y)**2 + (x_home+x)**2)**0.5
+    r_2 = ((y_home+y)**2 + (R-x_home-x)**2)**0.5
     
-    th1 = int(_TICKS_PER_MM * r_1_pprime)
-    th2 = int(_TICKS_PER_MM * r_2_pprime)
+    th1 = int(_TICKS_PER_MM * r_1)
+    th2 = int(_TICKS_PER_MM * r_2)
 
     return(th1, th2)
 
 if __name__ == '__main__':
     import task_share
-    sp_theta1_queue = task_share.Queue('i', 1000)
-    sp_theta2_queue = task_share.Queue('i', 1000)
-    sp_pen_queue = task_share.Queue('i', 1000)
-#     
-    parser = Parser(sp_theta1_queue, sp_theta2_queue, sp_pen_queue)
-#     parser = Parser(sp_theta1_queue, sp_theta2_queue)
+    th1q = task_share.Queue('i', 1000)
+    th2q = task_share.Queue('i', 1000)
+    penq = task_share.Queue('i', 1000)
+    
+    parser = Parser(th1q, th2q, penq)
+#     parser = Parser()
     parser.read()
-    print(sp_theta1_queue.get())
-    
-    
-                
+#     print(sp_theta1_queue.get())

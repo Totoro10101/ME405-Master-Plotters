@@ -73,7 +73,7 @@ if __name__ == "__main__":
     _moe2 = MotorDriver(_ena_pin2, _in1a_pin2, _in2a_pin2, _tim32)
     
     print('moving')
-    _moe1.set_duty_cycle(-70)
+    _moe1.set_duty_cycle(0)
     _moe2.set_duty_cycle(70)
     time.sleep(2)
     _moe1.set_duty_cycle(0)
