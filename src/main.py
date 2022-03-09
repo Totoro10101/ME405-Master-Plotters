@@ -62,76 +62,24 @@ def startup():
     This process includes running the motors until the limit switches are
     triggered. 
     '''
-#     print('pen up')
     servo1.set_angle(_UP)
-    
-#     m = 1
-#     n=1
-#     o =1
-#     zeroed = [False, False]
-#     limit1_share.put(0)
-#     limit2_share.put(0)
-#     print('moving motors')
-#     motor1.set_duty_cycle(-70)
-#     motor2.set_duty_cycle(70)
-#     print(not zeroed[0] or not zeroed[1])
-#     while not zeroed[0] or not zeroed[1]:
-#         if limit1_share.get() == 1 and not zeroed[0]:
-#             print('m1')
-#             motor1.set_duty_cycle(0)
-#             zeroed[0] = True
-#         if limit2_share.get() == 1 and not zeroed[1]:
-#             print('m2')
-#             motor2.set_duty_cycle(0)
-#             zeroed[1] = True
-#     while limit1_share.get() == 0 or limit2_share.get() == 0:
-#         if o==1:
-#             print('while')
-#             o=2
-# #         print(limit1_share.get(), limit2_share.get())
-#         if limit1_share.get():
-#             if m==1:
-#                 print('motor1')
-#                 m=2
-#             # stop motors while moving pen
-#             # one is negative because one rotates clockwise positive and the
-#             # rotates clockwise negative
-#             motor1.set_duty_cycle(0)
-#         if limit2_share.get():
-#             if n==1:
-#                 print('motor2')
-#                 n=2
-#             # stop motors while moving pen
-#             # one is negative because one rotates clockwise positive and the
-#             # rotates clockwise negative
-#             motor2.set_duty_cycle(0)
-        
+    zeroed1 = False
+    zeroed2 = False
+    print('moving motors')
+    motor1.set_duty_cycle(-70)
+    motor2.set_duty_cycle(70)
+    while not zeroed1 or not zeroed2:
+        if lim1pin.value() == 0 and not zeroed1:
+            print('m1')
+            motor1.set_duty_cycle(0)
+            zeroed1 = True
+        if lim2pin.value() == 0 and not zeroed2:
+            print('m2')
+            motor2.set_duty_cycle(0)
+            zeroed2 = True
         
     print('zeroed')
-    encoder1.set_position(_TICKS_MAX)
-    encoder2.set_position(_TICKS_MAX)
     
-
-def onLimit1PressFCN(IRQ_src):
-    '''!@brief       Sets buttonFlag True when button is pushed.
-       @details     Used as the callback function for the interrupt.
-                    Records that the button was pressed.
-       @param       IRQ_src Source of the interrupt. Required by MicroPython
-                            for callback functions, but unused.
-    '''
-    limit1_share.put(1)
-    LimitInt1.disable()
-    
-def onLimit2PressFCN(IRQ_src):
-    '''!@brief       Sets buttonFlag True when button is pushed.
-       @details     Used as the callback function for the interrupt.
-                    Records that the button was pressed.
-       @param       IRQ_src Source of the interrupt. Required by MicroPython
-                            for callback functions, but unused.
-    '''
-    limit2_share.put(1)
-    LimitInt2.disable()
-
 def task_enc1_fun():
     """!
     Task which reads encoder 1 position
@@ -156,36 +104,44 @@ def task_controller_fun ():
     """!
     Task that runs a PID controller.
     """
+    print("position:", encoder1_share.get(), encoder2_share.get())
     print('controller task')
-    state = _STATE_SERVO
+    # set the position of the encoders to the zeroing position. This must be
+    # done after encoder tasks run the first time to clear accumulated ticks
+    # from the zeroing process.
+    encoder1.set_position(_TICKS_MAX)
+    encoder2.set_position(_TICKS_MAX)
+    state = _STATE_MOTOR
     curr_servo_state = 0
-    # first setpoint
-    curr_theta1_sp = sp_theta1_queue.get()
-    curr_theta2_sp = sp_theta2_queue.get()
-    curr_pen_sp = sp_pen_queue.get()
-    print("first", curr_theta1_sp, curr_theta2_sp, curr_pen_sp)
-    pidController.set_set_point((curr_theta1_sp, curr_theta2_sp))
     servo_start_time = None
-    
-    servo1.set_angle(_UP)
-    print('setting angle')
+    # first setpoint
+    if sp_theta1_queue.any():
+        next_th1_sp = sp_theta1_queue.get()
+        next_th2_sp = sp_theta2_queue.get()
+        next_pen_sp = sp_pen_queue.get()
+    print("first:", next_th1_sp, next_th2_sp, next_pen_sp)
+    pidController.set_set_point((next_th1_sp, next_th2_sp))
     while True:
+        duty1 = pidController.run(_MOTOR1)
+        motor1.set_duty_cycle(duty1)
+        motor2.set_duty_cycle(pidController.run(_MOTOR2))
+#         print(duty1)
         if state == _STATE_MOTOR:
-            pen_change = curr_pen_sp != curr_servo_state
-#             print(pen_change, end=' ')
             move_done = pidController.check_finish_step()
 #             print(move_done)
-            if pen_change and move_done: # pen needs to move and motor move is done
-                state = _STATE_SERVO
-#                 print('changing to servo state')
-            elif not pen_change and move_done:
-                # next setpoint
-                curr_theta1_sp = sp_theta1_queue.get()
-                curr_theta2_sp = sp_theta2_queue.get()
-                curr_pen_sp = sp_pen_queue.get()
-                print("updated", curr_theta1_sp, curr_theta2_sp, curr_pen_sp)
-                pidController.set_set_point((curr_theta1_sp, curr_theta2_sp))
-                
+            if move_done:
+#                 print("next:", next_th1_sp, next_th2_sp, next_pen_sp)
+                if sp_theta1_queue.any():
+                    next_pen_sp = sp_pen_queue.get()
+                    next_th1_sp = sp_theta1_queue.get()
+                    next_th2_sp = sp_theta2_queue.get()
+                if next_pen_sp == curr_servo_state:
+                    # update setpoint
+                    pidController.set_set_point((next_th1_sp, next_th2_sp))
+                else:
+                    state = _STATE_SERVO
+#                     print('servo state')
+            
         elif state == _STATE_SERVO:
             _SERVO_WAIT = 500 # ms
 #             print('servo state')
@@ -193,20 +149,18 @@ def task_controller_fun ():
                 servo_start_time = time.ticks_ms()
                 if curr_servo_state == 0:
                     servo1.set_angle(_DOWN)
-                    curr_servo_state = curr_pen_sp
                 elif curr_servo_state == 1:
                     servo1.set_angle(_UP)
             # wait cooperatively and disable controller?
             elif time.ticks_diff(time.ticks_ms(), servo_start_time) > _SERVO_WAIT:
-                curr_servo_state = curr_pen_sp
+                pidController.set_set_point((next_th1_sp, next_th2_sp))
+                curr_servo_state = next_pen_sp
                 servo_start_time = None
                 state = _STATE_MOTOR
 #                 print ('going to motor state')
+
         # update controller always
-        duty1 = pidController.run(_MOTOR1)
-        motor1.set_duty_cycle(duty1)
-        motor2.set_duty_cycle(pidController.run(_MOTOR2))
-#         print(duty1)
+
         yield ()
         
 # This code creates a share for each encoder object, creates encoder objects to read from, creates controller
@@ -235,13 +189,14 @@ if __name__ == "__main__":
     encoder2 = encoder.EncoderDriver(pyb.Pin.cpu.C6, pyb.Pin.cpu.C7, 8)
     
     # Instantiate limit switches
-    pinC2 = pyb.Pin(pyb.Pin.cpu.C2)
-    pinC3 = pyb.Pin(pyb.Pin.cpu.C3)
+    lim2pin = pyb.Pin(pyb.Pin.cpu.C2, pyb.Pin.IN)
+    lim1pin = pyb.Pin(pyb.Pin.cpu.C3, pyb.Pin.IN)
     ## \hideinitializer
-    LimitInt1 = pyb.ExtInt(pinC3, mode=pyb.ExtInt.IRQ_FALLING,
-                           pull=pyb.Pin.PULL_NONE, callback=onLimit1PressFCN)
-    LimitInt2 = pyb.ExtInt(pinC2, mode=pyb.ExtInt.IRQ_FALLING,
-                           pull=pyb.Pin.PULL_NONE, callback=onLimit2PressFCN) 
+    
+#     LimitInt1 = pyb.ExtInt(pinC3, mode=pyb.ExtInt.IRQ_FALLING,
+#                            pull=pyb.Pin.PULL_NONE, callback=onLimit1PressFCN)
+#     LimitInt2 = pyb.ExtInt(pinC2, mode=pyb.ExtInt.IRQ_FALLING,
+#                            pull=pyb.Pin.PULL_NONE, callback=onLimit2PressFCN) 
     
     # Instantiate servo
     servo1 = servo.Servo(pin1 = pyb.Pin.board.PA9,
@@ -281,13 +236,12 @@ if __name__ == "__main__":
 
     # Run the scheduler with the chosen scheduling algorithm. Quit if KeyboardInterrupt
 #     tasks_start_time = time.ticks_ms()
-    limit1_share.put(0)
-    limit2_share.put(0)
     startup()
     print('startup finished')
-    
+    print("position:", encoder1_share.get(), encoder2_share.get())
     parser.read()
     print('parser read')
+    print(sp_theta1_queue.num_in())
     while True:
         try:
             cotask.task_list.pri_sched ()

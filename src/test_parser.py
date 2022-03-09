@@ -36,7 +36,7 @@ class Parser:
                      Takes the data points and converts them to a readable format to send to our
                      controller for setting set points for our motors.
         '''
-        with open('test_rectangle.hpgl', 'r') as raw_hpgl:
+        with open('test_star.hpgl', 'r') as raw_hpgl:
             for line in raw_hpgl:
                 split_hpgl = line.split(';')     #split the raw hpgl by the commands at the semi colons
 #                 print(split_hpgl)
