@@ -44,21 +44,21 @@ class Parser:
                 # This removes all initialize, pen color, and initial pen up commands
                 split_hpgl = [ ele for ele in split_hpgl if (ele != 'IN' and ele[:2] != 'SP' and ele != 'PU' and ele != ' ')]
                                 
-#                 print(split_hpgl) 
+                print(split_hpgl) 
                 for ele in split_hpgl:
                     if ele[:2] == 'PU':
                         pen_state = _UP
                     elif ele[:2] == 'PD':
                         pen_state = _DOWN
                     else:
-#                         print(ele)
+                        print(ele)
                         raise ValueError("something other than PU/PD")
                     coords = ele[2:].split(',')
                     for i in range(0, len(coords), 2):
                         x = int(coords[i]) / 40
                         y = int(coords[i + 1]) / 40
                         th1, th2 = transform(x, y)
-#                         print(x, y, th1, th2, pen_state)
+                        print(x, y, th1, th2, pen_state)
                         if not self.th1q.full():
                             self.th1q.put(th1)
 #                             print(th1)
