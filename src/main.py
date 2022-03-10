@@ -88,7 +88,7 @@ def task_enc1_fun():
     while True:
         value = encoder1.read()
         encoder1_share.put(value)
-#         print(value, end=' ')
+        print(value, end=' ')
         yield ()
 
 def task_enc2_fun():
@@ -98,7 +98,7 @@ def task_enc2_fun():
     while True:
         value = encoder2.read()
         encoder2_share.put(value)
-#         print(value)
+        print(value)
         yield ()
         
 def task_controller_fun ():
@@ -131,7 +131,7 @@ def task_controller_fun ():
             move_done = pidController.check_finish_step()
 #             print(move_done)
             if move_done:
-#                 print("next:", next_th1_sp, next_th2_sp, next_pen_sp)
+                print("next:", next_th1_sp, next_th2_sp, next_pen_sp)
                 if sp_theta1_queue.any():
                     next_pen_sp = sp_pen_queue.get()
                     next_th1_sp = sp_theta1_queue.get()
