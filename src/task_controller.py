@@ -168,7 +168,7 @@ class PIDController:
         @return a boolean is returned for if the setpoint has been reached.
         '''
         done = False
-        print(self._error[_MOTOR1], self._error[_MOTOR2])
+#         print(self._error[_MOTOR1], self._error[_MOTOR2])
         if abs(self._error[_MOTOR1]) < 1000 and abs(self._error[_MOTOR2]) < 1000:
             self._step_start_time = [None, None]
             self._error = [0, 0]

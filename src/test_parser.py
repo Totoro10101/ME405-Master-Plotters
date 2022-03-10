@@ -19,8 +19,10 @@ _PULLEY_TEETH = 16
 _BELT_PITCH = 2 # mm
 _PI = 3.14159
 
-_PULLEY_PITCH_RADIUS = _PULLEY_TEETH * _BELT_PITCH / _PI / 2
-_TICKS_PER_MM = _PPR / (2 * _PI) / _PULLEY_PITCH_RADIUS
+_TICKS_PER_MM = 512
+_R_MAX = 330 # mm
+_TICKS_MAX = _TICKS_PER_MM * _R_MAX
+
 # print(_TICKS_PER_MM)
 MAX_LENGTH = 2
 
@@ -38,7 +40,7 @@ class Parser:
                      Takes the data points and converts them to a readable format to send to our
                      controller for setting set points for our motors.
         '''
-        with open('test_stars.hpgl', 'r') as raw_hpgl:
+        with open('WE_ARE_AWESOME.hpgl', 'r') as raw_hpgl:
             for line in raw_hpgl:
                 split_hpgl = line.split(';')     #split the raw hpgl by the commands at the semi colons                
                 # This removes all initialize, pen color, and initial pen up commands
@@ -73,7 +75,15 @@ class Parser:
                     else:
                         print(ele)
                         raise ValueError("something other than PU/PD")
-                        
+        print('done parsing')
+        if not self.th1q.full():
+            print('last point')
+            self.th1q.put(150000)
+            self.th2q.put(150000)
+            print('pens q')
+            self.penq.put(_UP)
+            print('last point queued')
+        
 R = 263 #mm             # Distance between the motors
 x_home = 80.7
 y_home = 122.676

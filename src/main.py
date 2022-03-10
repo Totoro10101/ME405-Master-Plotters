@@ -129,9 +129,9 @@ def task_controller_fun ():
 #         print(duty1)
         if state == _STATE_MOTOR:
             move_done = pidController.check_finish_step()
-            print(move_done)
+#             print(move_done)
             if move_done:
-                print("next:", next_th1_sp, next_th2_sp, next_pen_sp)
+#                 print("next:", next_th1_sp, next_th2_sp, next_pen_sp)
                 if sp_theta1_queue.any():
                     next_pen_sp = sp_pen_queue.get()
                     next_th1_sp = sp_theta1_queue.get()
