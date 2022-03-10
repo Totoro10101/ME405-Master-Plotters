@@ -10,7 +10,7 @@
 
 """
 # import task_share
-
+import math
 _UP = 0
 _DOWN = 1
 
@@ -22,6 +22,8 @@ _PI = 3.14159
 _PULLEY_PITCH_RADIUS = _PULLEY_TEETH * _BELT_PITCH / _PI / 2
 _TICKS_PER_MM = _PPR / (2 * _PI) / _PULLEY_PITCH_RADIUS
 # print(_TICKS_PER_MM)
+MAX_LENGTH = 2
+
 class Parser:
 
     def __init__(self, sp_theta1_queue, sp_theta2_queue, sp_pen_queue):
@@ -36,34 +38,41 @@ class Parser:
                      Takes the data points and converts them to a readable format to send to our
                      controller for setting set points for our motors.
         '''
-        with open('test_star.hpgl', 'r') as raw_hpgl:
+        with open('test_stars.hpgl', 'r') as raw_hpgl:
             for line in raw_hpgl:
-                split_hpgl = line.split(';')     #split the raw hpgl by the commands at the semi colons
-#                 print(split_hpgl)
-                
+                split_hpgl = line.split(';')     #split the raw hpgl by the commands at the semi colons                
                 # This removes all initialize, pen color, and initial pen up commands
-                split_hpgl = [ ele for ele in split_hpgl if (ele != 'IN' and ele[:2] != 'SP' and ele != 'PU' and ele != ' ')]
-                                
-                print(split_hpgl) 
+                split_hpgl = [ ele for ele in split_hpgl if (ele != 'IN' and ele[:2] != 'SP' and ele != 'PU' and ele != ' ')]                    
                 for ele in split_hpgl:
+                    coords = [int(coord) for coord in ele[2:].split(',')]
                     if ele[:2] == 'PU':
-                        pen_state = _UP
+                        x = coords[0] / 40
+                        y = coords[1] / 40
+                        th1, th2 = transform(x, y)
+                        print(x, y, th1, th2, 'up')
+                        if not self.th1q.full():
+                            self.th1q.put(th1)
+                            self.th2q.put(th2)
+                            self.penq.put(_UP)
+                        last_x = x
+                        last_y = y
                     elif ele[:2] == 'PD':
-                        pen_state = _DOWN
+                        for i in range(0, len(coords), 2):
+                            x = coords[i] / 40
+                            y = coords[i + 1] / 40
+                            interpolated = linterp2(last_x, last_y, x, y)
+                            for xx, yy in interpolated:
+                                th1, th2 = transform(xx, yy)
+                                print(xx, yy, th1, th2, 'down')
+                                if not self.th1q.full():
+                                    self.th1q.put(th1)
+                                    self.th2q.put(th2)
+                                    self.penq.put(_DOWN)
+                            last_x = x
+                            last_y = y
                     else:
                         print(ele)
                         raise ValueError("something other than PU/PD")
-                    coords = ele[2:].split(',')
-                    for i in range(0, len(coords), 2):
-                        x = int(coords[i]) / 40
-                        y = int(coords[i + 1]) / 40
-                        th1, th2 = transform(x, y)
-                        print(x, y, th1, th2, pen_state)
-                        if not self.th1q.full():
-                            self.th1q.put(th1)
-#                             print(th1)
-                            self.th2q.put(th2)
-                            self.penq.put(pen_state)
                         
 R = 263 #mm             # Distance between the motors
 x_home = 80.7
@@ -87,13 +96,26 @@ def transform(x, y):
     # we can then calcualte the radius (mm) needed to reach any point
     # x,y (mm) on the board
 
-    r_1 = ((y_home+y)**2 + (x_home+x)**2)**0.5
-    r_2 = ((y_home+y)**2 + (R-x_home-x)**2)**0.5
+    r_2 = ((y_home+y)**2 + (x_home+x)**2)**0.5
+    r_1 = ((y_home+y)**2 + (R-(x_home+x))**2)**0.5
     
     th1 = int(_TICKS_PER_MM * r_1)
     th2 = int(_TICKS_PER_MM * r_2)
 
     return(th1, th2)
+
+def linterp2(x1, y1, x2, y2):
+    dx = x2 - x1
+    dy = y2 - y1
+    dmax = max(abs(dx), abs(dy))
+    n = math.ceil(dmax / MAX_LENGTH)
+    # print(n)
+    points = []
+    for i in range(n + 1):
+        x = int(x1 + dx / n * i)
+        y = int(y1 + dy / n * i)
+        points.append((x, y))
+    return points
 
 if __name__ == '__main__':
     import task_share

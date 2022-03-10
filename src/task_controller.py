@@ -108,12 +108,12 @@ class PIDController:
         # PID actuation value
         actuation_value = Pduty + self._Iduty[motorID] + Dduty
         
-        
+        maxpower = 70
         # Filter saturated values
-        if actuation_value > 100:
-            actuation_value = 100
-        elif actuation_value < -100:
-            actuation_value = -100
+        if actuation_value > maxpower:
+            actuation_value = maxpower
+        elif actuation_value < -maxpower:
+            actuation_value = -maxpower
         
         # Store values for next iteration
         self._last_error[motorID] = self._error[motorID]

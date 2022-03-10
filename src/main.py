@@ -30,7 +30,7 @@ import test_parser
 
 _PPR = 256*4*16
 
-kp = 3.6*(360/_PPR)
+kp = 4*(360/_PPR)
 ki = 0*(360/_PPR)
 kd = 0*(360/_PPR)
 
@@ -40,6 +40,7 @@ _TICKS_MAX = _TICKS_PER_MM * _R_MAX
 
 # Read time length of step response from serial port
 # _stepResponseTime = 1.5*1000  #ms
+
 
 # Motor IDs
 _MOTOR1 = 0
@@ -178,9 +179,9 @@ if __name__ == "__main__":
     encoder2_share = task_share.Share('i', thread_protect = False, name = "Encoder 2 Share")
     
     # Create a Queue with set points (theta_1, theta_2, Pen_up/down) (ticks)
-    sp_theta1_queue = task_share.Queue('i', 1000)
-    sp_theta2_queue = task_share.Queue('i', 1000)
-    sp_pen_queue = task_share.Queue('i', 1000)
+    sp_theta1_queue = task_share.Queue('i', 2000)
+    sp_theta2_queue = task_share.Queue('i', 2000)
+    sp_pen_queue = task_share.Queue('i', 2000)
     
     parser = test_parser.Parser(sp_theta1_queue, sp_theta2_queue, sp_pen_queue)
     
