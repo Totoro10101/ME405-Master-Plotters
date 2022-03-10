@@ -49,7 +49,7 @@ class Parser:
                         x = coords[0] / 40
                         y = coords[1] / 40
                         th1, th2 = transform(x, y)
-                        print(x, y, th1, th2, 'up')
+#                         print(x, y, th1, th2, 'up')
                         if not self.th1q.full():
                             self.th1q.put(th1)
                             self.th2q.put(th2)
@@ -63,7 +63,7 @@ class Parser:
                             interpolated = linterp2(last_x, last_y, x, y)
                             for xx, yy in interpolated:
                                 th1, th2 = transform(xx, yy)
-                                print(xx, yy, th1, th2, 'down')
+#                                 print(xx, yy, th1, th2, 'down')
                                 if not self.th1q.full():
                                     self.th1q.put(th1)
                                     self.th2q.put(th2)
