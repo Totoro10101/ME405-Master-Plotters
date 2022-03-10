@@ -112,8 +112,8 @@ def linterp2(x1, y1, x2, y2):
     # print(n)
     points = []
     for i in range(n + 1):
-        x = int(x1 + dx / n * i)
-        y = int(y1 + dy / n * i)
+        x = x1 + dx / n * i
+        y = y1 + dy / n * i
         points.append((x, y))
     return points
 
