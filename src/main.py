@@ -226,7 +226,7 @@ if __name__ == "__main__":
     startup()
     print('startup finished')
     print("parsing hpgl...")
-    parser.read()
+    parser.read('WE_ARE_AWESOME.hpgl')
     print('done parsing')
     # Run the scheduler with the chosen scheduling algorithm.
     # Quit if KeyboardInterrupt.
