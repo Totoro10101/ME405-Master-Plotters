@@ -85,6 +85,7 @@ class Parser:
         
         @param hpgl__file the name of the hpgl file you want parsed.
         '''
+        print("parsing hpgl...")
         
         with open(hpgl_file, 'r') as raw_hpgl:
             # This section of the code reads the hpgl file, then splits it up

@@ -1,7 +1,7 @@
 """!
 @file main.py
     This file contains a program that operates a 2.5 dimensional pen
-    plotter using a task based approach. 
+    plotter using a task based a_PPRoach. 
 
 @author             Tori Bornino
 @author             Jackson McLaughlin
@@ -26,17 +26,17 @@ import controller
 import task_parser
 
 # Encoder pulses (ticks) per revolution
-PPR = 256*4*16
+_PPR = 256*4*16
 
 # Gains for motor PID controller (using P only)
-kp = 4*(360/PPR)
-ki = 0*(360/PPR)
-kd = 0*(360/PPR)
+_KP = 4*(360/_PPR)
+_KI = 0*(360/_PPR)
+_KD = 0*(360/_PPR)
 
 ## @brief Encoder ticks per mm of belt length change.
 #  @details There are 512 ticks/mm because there are 16 teeth on the drive
 #           pulleys, at 2mm pitch, for 32mm of belt length per revolution.
-#           Dividing the PPR of the encoder by 32mm gives 512 ticks/mm. 
+#           Dividing the _PPR of the encoder by 32mm gives 512 ticks/mm. 
 TICKS_PER_MM = 512
 ## @brief Maximum length of either belt.
 R_MAX = 330 # mm
@@ -57,7 +57,7 @@ def startup():
     This method will initialize the pen plotter.
     
     This process includes running the motors until the limit switches are
-    triggered. 
+    triggered. The pen will be up during this routine.
     '''
     servo1.set_angle(UP)
     zeroed1 = False
@@ -74,8 +74,7 @@ def startup():
             print('m2')
             motor2.set_duty_cycle(0)
             zeroed2 = True
-        
-    print('zeroed')
+    print('startup finished')
     
 def task_enc1_fun():
     """!
@@ -97,19 +96,20 @@ def task_enc2_fun():
         
 def task_controller_fun ():
     """!
-    Task that runs a PID controller.
+    Task that runs a PID controller that controls both motors and the servo.
     """
     # States of controller FSM
-    STATE_MOTOR = 0
-    STATE_SERVO = 1
+    _STATE_MOTOR = 0
+    _STATE_SERVO = 1
+    
     # Set the position of the encoders to the zeroing position. This must be
     # done after encoder tasks run the first time to clear accumulated ticks
     # from the zeroing process.
     encoder1.set_position(TICKS_MAX)
     encoder2.set_position(TICKS_MAX)
     
-    # Initial state: Motor is controlled and pen is up
-    state = STATE_MOTOR
+    # Initial state: Motor is controlled and pen is up from startup
+    state = _STATE_MOTOR
     curr_servo_state = 0
     servo_start_time = None
     
@@ -118,13 +118,16 @@ def task_controller_fun ():
         next_th1_sp = sp_theta1_queue.get()
         next_th2_sp = sp_theta2_queue.get()
         next_pen_sp = sp_pen_queue.get()
-    print("first:", next_th1_sp, next_th2_sp, next_pen_sp)
+#     print("first:", next_th1_sp, next_th2_sp, next_pen_sp)
     pidController.set_set_point((next_th1_sp, next_th2_sp))
+    
+    
     while True:
         # Always update the controller first
         motor1.set_duty_cycle(pidController.run(_MOTOR1))
         motor2.set_duty_cycle(pidController.run(_MOTOR2))
-        if state == STATE_MOTOR:
+        
+        if state == _STATE_MOTOR:
             move_done = pidController.check_finish_step()
             if move_done:
                 # Retrieve the next setpoint in the queue, but don't update
@@ -138,9 +141,9 @@ def task_controller_fun ():
                     pidController.set_set_point((next_th1_sp, next_th2_sp))
                 else:
                     # If pen position needs to change, go to servo state
-                    state = STATE_SERVO
+                    state = _STATE_SERVO
             
-        elif state == STATE_SERVO:
+        elif state == _STATE_SERVO:
             # Time that the servo needs to change position
             _SERVO_WAIT = 500 # ms
             if servo_start_time == None:
@@ -155,7 +158,7 @@ def task_controller_fun ():
                 pidController.set_set_point((next_th1_sp, next_th2_sp))
                 curr_servo_state = next_pen_sp
                 servo_start_time = None
-                state = STATE_MOTOR
+                state = _STATE_MOTOR
         yield ()
         
 if __name__ == "__main__":
@@ -201,7 +204,7 @@ if __name__ == "__main__":
     # Instantiate proportional controller with initial gains and setpoint
     pidController = controller.PIDController(1, 0, 0, (TICKS_MAX, TICKS_MAX),
                                              encoder1_share, encoder2_share)
-    pidController.set_gains(kp, ki, kd)
+    pidController.set_gains(_KP, _KI, _KD)
 
     # Create the tasks. If trace is enabled for any task, memory will be
     # allocated for state transition tracing, and the application will run out
@@ -222,12 +225,11 @@ if __name__ == "__main__":
     # possible before the real-time scheduler is started
     gc.collect()
 
-    # Run the startup routine to zero the encoders
+    # Run the startup routine to home the encoders 
     startup()
-    print('startup finished')
-    print("parsing hpgl...")
+    # parse the selected HPGL file
     parser.read('WE_ARE_AWESOME.hpgl')
-    print('done parsing')
+    
     # Run the scheduler with the chosen scheduling algorithm.
     # Quit if KeyboardInterrupt.
     while True:
