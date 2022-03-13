@@ -91,7 +91,7 @@ if __name__ == '__main__':
     import time
     
     # Instantiate encoder 1 with default pins and timer
-    enc1 = Encoder(pyb.Pin.cpu.B6, pyb.Pin.cpu.B7, 4)
+    enc1 = EncoderDriver(pyb.Pin.cpu.B6, pyb.Pin.cpu.B7, 4)
     
     # Print the encoder read position in ticks every 0.5 seconds
     try:

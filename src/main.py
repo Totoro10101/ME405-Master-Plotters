@@ -1,7 +1,7 @@
 """!
 @file main.py
-    This file contains a program that operates a 2.5 dimensional pen plotter using a
-    task based approach. 
+    This file contains a program that operates a 2.5 dimensional pen
+    plotter using a task based approach. 
 
 @author             Tori Bornino
 @author             Jackson McLaughlin
@@ -25,30 +25,32 @@ import servo
 import controller
 import task_parser
 
+# Encoder pulses (ticks) per revolution
+PPR = 256*4*16
 
-_PPR = 256*4*16
+# Gains for motor PID controller (using P only)
+kp = 4*(360/PPR)
+ki = 0*(360/PPR)
+kd = 0*(360/PPR)
 
-kp = 4*(360/_PPR)
-ki = 0*(360/_PPR)
-kd = 0*(360/_PPR)
-
-_TICKS_PER_MM = 512
-_R_MAX = 330 # mm
-_TICKS_MAX = _TICKS_PER_MM * _R_MAX
+## @brief Encoder ticks per mm of belt length change.
+#  @details There are 512 ticks/mm because there are 16 teeth on the drive
+#           pulleys, at 2mm pitch, for 32mm of belt length per revolution.
+#           Dividing the PPR of the encoder by 32mm gives 512 ticks/mm. 
+TICKS_PER_MM = 512
+## @brief Maximum length of either belt.
+R_MAX = 330 # mm
+## @brief Maximum position of either motor (ticks)
+TICKS_MAX = TICKS_PER_MM * R_MAX
 
 # Motor IDs
 _MOTOR1 = 0
 _MOTOR2 = 1
 
-
-# Servo pwm values
-##  @brief The servo pwm location to move to when the pen is up
-_UP = 8
-##  @brief The servo pwm location to move to when the pen is down
-_DOWN = 7
-
-_STATE_MOTOR = 0
-_STATE_SERVO = 1
+##  @brief The servo pwm to set when the pen is up (% duty cycle)
+UP = 8
+##  @brief The servo pwm to set when the pen is down (% duty cycle)
+DOWN = 7
 
 def startup():
     '''!
@@ -57,7 +59,7 @@ def startup():
     This process includes running the motors until the limit switches are
     triggered. 
     '''
-    servo1.set_angle(_UP)
+    servo1.set_angle(UP)
     zeroed1 = False
     zeroed2 = False
     print('moving motors')
@@ -97,14 +99,17 @@ def task_controller_fun ():
     """!
     Task that runs a PID controller.
     """
+    # States of controller FSM
+    STATE_MOTOR = 0
+    STATE_SERVO = 1
     # Set the position of the encoders to the zeroing position. This must be
     # done after encoder tasks run the first time to clear accumulated ticks
     # from the zeroing process.
-    encoder1.set_position(_TICKS_MAX)
-    encoder2.set_position(_TICKS_MAX)
+    encoder1.set_position(TICKS_MAX)
+    encoder2.set_position(TICKS_MAX)
     
     # Initial state: Motor is controlled and pen is up
-    state = _STATE_MOTOR
+    state = STATE_MOTOR
     curr_servo_state = 0
     servo_start_time = None
     
@@ -119,7 +124,7 @@ def task_controller_fun ():
         # Always update the controller first
         motor1.set_duty_cycle(pidController.run(_MOTOR1))
         motor2.set_duty_cycle(pidController.run(_MOTOR2))
-        if state == _STATE_MOTOR:
+        if state == STATE_MOTOR:
             move_done = pidController.check_finish_step()
             if move_done:
                 # Retrieve the next setpoint in the queue, but don't update
@@ -133,35 +138,39 @@ def task_controller_fun ():
                     pidController.set_set_point((next_th1_sp, next_th2_sp))
                 else:
                     # If pen position needs to change, go to servo state
-                    state = _STATE_SERVO
+                    state = STATE_SERVO
             
-        elif state == _STATE_SERVO:
+        elif state == STATE_SERVO:
             # Time that the servo needs to change position
             _SERVO_WAIT = 500 # ms
             if servo_start_time == None:
                 servo_start_time = time.ticks_ms()
                 if curr_servo_state == 0:
-                    servo1.set_angle(_DOWN)
+                    servo1.set_angle(DOWN)
                 elif curr_servo_state == 1:
-                    servo1.set_angle(_UP)
+                    servo1.set_angle(UP)
             # Wait for servo
             elif time.ticks_diff(time.ticks_ms(),
                                  servo_start_time) > _SERVO_WAIT:
                 pidController.set_set_point((next_th1_sp, next_th2_sp))
                 curr_servo_state = next_pen_sp
                 servo_start_time = None
-                state = _STATE_MOTOR
+                state = STATE_MOTOR
         yield ()
         
 if __name__ == "__main__":
     # Create 2 limit switch shares to share limit switch condition.
     # 1 is unpressed, 0 is pressed (active-low configuration).
-    limit1_share = task_share.Share('i', thread_protect = False, name = "Limit 1 Share")
-    limit2_share = task_share.Share('i', thread_protect = False, name = "Limit 2 Share")
+    limit1_share = task_share.Share('i', thread_protect=False,
+                                    name="Limit 1 Share")
+    limit2_share = task_share.Share('i', thread_protect = False,
+                                    name = "Limit 2 Share")
     
     # Create 2 encoder shares to share position data.
-    encoder1_share = task_share.Share('i', thread_protect = False, name = "Encoder 1 Share")
-    encoder2_share = task_share.Share('i', thread_protect = False, name = "Encoder 2 Share")
+    encoder1_share = task_share.Share('i', thread_protect = False,
+                                      name = "Encoder 1 Share")
+    encoder2_share = task_share.Share('i', thread_protect = False,
+                                      name = "Encoder 2 Share")
 
     # Create Queues with set points (theta_1, theta_2, Pen_up/down) (ticks).
     sp_theta1_queue = task_share.Queue('i', 2000)
@@ -190,7 +199,7 @@ if __name__ == "__main__":
                             pyb.Pin.board.PB5, pyb.Timer(3, freq=20000))
     
     # Instantiate proportional controller with initial gains and setpoint
-    pidController = controller.PIDController(1, 0, 0, (_TICKS_MAX, _TICKS_MAX),
+    pidController = controller.PIDController(1, 0, 0, (TICKS_MAX, TICKS_MAX),
                                              encoder1_share, encoder2_share)
     pidController.set_gains(kp, ki, kd)
 
