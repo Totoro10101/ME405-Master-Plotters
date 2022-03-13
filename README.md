@@ -32,6 +32,6 @@ pulleys will be purchased from Amazon and other components to hold the pen and s
 |  1   | BongoTies Bungie Cord          | Senior Project        |     -     | 
 
 ## System Sketch
-| ![Plotter System](plots/scaledsketch.png) |
+| ![Plotter System](images/scaledsketch.png) |
 |:--:|
 |**Figure 1: Scaled sketch showing the basic layout of our planned plotter**|
