@@ -190,7 +190,7 @@ if __name__ == "__main__":
     
     # Instantiate servo
     servo1 = servo.Servo(pin1 = pyb.Pin.board.PA9,
-                         timer = pyb.Timer(1, freq=50), timerChannel = 2)
+                         timer = pyb.Timer(1, freq=50), channel = 2)
     
     # Instantiate motors with default pins and timer
     motor1 = motor.MotorDriver(pyb.Pin.board.PC1, pyb.Pin.board.PA0,
