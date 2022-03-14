@@ -44,7 +44,15 @@ pulleys will be purchased from Amazon and other components to hold the pen and s
 |**Figure 2: CAD Model showing final version of Pen Plotter**|
 
 The hardware we are using is mostly 3D printed from CAD designs created in Solidworks. The main components are the motor mounts, paracord pulleys, 
-the pen carriage, and servo mount for actuating the pen.
+the pen carriage, and servo mount for actuating the pen. The motor mounts allow for mounting of our gearmotors vertically with the GT2 timing pulleys
+housed within the mount and connected to the bungee cord. The pulleys at the adjacent corners that are not driven are using skateboard bearings mounted on top
+of similar mounts to ensure the cord is at the same height as the timing belt. One feature that we added since the preliminary sketch phase was a wrap around
+pulley for the bungee cord. The extra length of the cord wrapping around this additional pulley ensures we keep proper tension on the timing belt at all locations
+in the drawing area, otherwise the bungee could loosen up too much and the belts would slip. The timing belt and cord are connected to the pen carriage at the top
+and bottom of the rectangular carriage. There is a pulley on the back to allow the para cord to move smoothly, but the timing belts are attached using string to keep 
+the distance constant from the gearmotors to the pen carriage. The pen is attached using a 3D printed holder that contains a cutout to press fit the sharpie into 
+the hole. This is then connected to the servo that is mounted on the carriage using the small servo arm and an indentation for the servo to lift up the pen. The pen
+carriage itself uses small ball transfer bearings to slide smoothly across the paper while the pen plots.
 
 ## Software Design
 The software we designed uses a task based approach to update encoder positions and control set points based on a given HPGL file. The first process
