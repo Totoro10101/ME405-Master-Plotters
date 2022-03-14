@@ -53,6 +53,8 @@ set points from the HPGL file. The parsed HPGL file gives coordinates in the for
 based on the HPGL and then sets the set point for each motor individually. The controller and encoder constantly update and share the data they collect
 to tell whether the pen has reached the proper set point. 
 
+For more detailed explanation on the tasks being performed, refer to our [Github Pages Documentation](https://totoro10101.github.io/ME405-Master-Plotters/)
+
 ## Results
 
 ## Additional Links
