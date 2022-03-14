@@ -10,8 +10,8 @@
 import pyb
 
 ##  @brief      Encoder overflow period.
-#   @details    The Encoder AR value 2**16-1.
-_ENC_PERIOD = 2 ** 16 - 1 # Ticks overflow period for the encoder
+#   @details    The Encoder autoreload value 2**16-1.
+ENC_PERIOD = 2 ** 16 - 1 # Ticks overflow period for the encoder
 
 class EncoderDriver:
     '''!Interface with quadrature encoders. This class is a driver for
@@ -21,7 +21,8 @@ class EncoderDriver:
         of the encoder.
     '''
     
-    def __init__(self, pin1, pin2, timerID, timerChannel1=1, timerChannel2=2):
+    def __init__(self, pin1, pin2, timerID, timer_channel1=1,
+                 timer_channel2=2):
         '''!Constructs an encoder object. The Encoder object stores position
             and delta values and provides methods to get position or delta and
             to set position. The hardware timer is set up in this constructor.
@@ -32,11 +33,11 @@ class EncoderDriver:
             @param      timerChannel1   Channel 1 id number. Default 1
             @param      timerChannel2   Channel 2 id number. Default 2
         '''
-        self._timer = pyb.Timer(timerID,period=(_ENC_PERIOD),prescaler=0)
+        self._timer = pyb.Timer(timerID,period=ENC_PERIOD, prescaler=0)
         # Channels are never called in code, but they enable the timer counter 
-        self._channel_1 = self._timer.channel(timerChannel1,
+        self._channel_1 = self._timer.channel(timer_channel1,
                                               mode=pyb.Timer.ENC_AB,pin=pin1)
-        self._channel_2 = self._timer.channel(timerChannel2,
+        self._channel_2 = self._timer.channel(timer_channel2,
                                               mode=pyb.Timer.ENC_AB,pin=pin2)
 
         ##  @brief     Calculated position of the encoder
@@ -47,7 +48,7 @@ class EncoderDriver:
         ##  @brief     Current encoder reading 
         #   @details   Current encoder reading in ticks stored to calculate 
         #              change in position between readings.
-        self.currentTick = 0
+        self.current_tick = 0
         
     def read(self):
         '''!Updates and returns encoder position. Updates variables which store
@@ -57,15 +58,15 @@ class EncoderDriver:
         '''
         # Calculate the change in position in ticks using the last
         # measured value
-        lastTick = self.currentTick
-        self.currentTick = self._timer.counter()
-        delta = self.currentTick - lastTick
+        last_tick = self.current_tick
+        self.current_tick = self._timer.counter()
+        delta = self.current_tick - last_tick
         
         # Compensate for overflow.
-        if delta >= _ENC_PERIOD / 2:
-            delta -= _ENC_PERIOD
-        elif delta <= -_ENC_PERIOD / 2:
-            delta += _ENC_PERIOD
+        if delta >= ENC_PERIOD / 2:
+            delta -= ENC_PERIOD
+        elif delta <= -ENC_PERIOD / 2:
+            delta += ENC_PERIOD
         
         # Record the current position for next iteration delta calculation
         self.position += delta
@@ -86,6 +87,7 @@ class EncoderDriver:
         '''
         self.position = position
         
+# Encoder test program
 if __name__ == '__main__':
     
     import time

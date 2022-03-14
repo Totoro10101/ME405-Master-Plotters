@@ -1,7 +1,7 @@
 """!
 @file main.py
     This file contains a program that operates a 2.5 dimensional pen
-    plotter using a task based a_PPRoach. 
+    plotter using a task based approach. 
 
 @author             Tori Bornino
 @author             Jackson McLaughlin
@@ -25,13 +25,18 @@ import servo
 import controller
 import task_parser
 
-# Encoder pulses (ticks) per revolution
-_PPR = 256*4*16
+## @brief   Encoder pulses (ticks) per revolution
+#  @details The encoder pulses or ticks per revolution of the pulley is 256
+#           counts per revolution times 4 pulses per count for a quadrature
+#           encoder time 16 for the 16:1 ratio between the backshaft of the
+#           motor where the encoder is and the output shaft of the gearbox
+#           where the pulley is.
+PPR = 256*4*16
 
 # Gains for motor PID controller (using P only)
-_KP = 4*(360/_PPR)
-_KI = 0*(360/_PPR)
-_KD = 0*(360/_PPR)
+_KP = 4*(360/PPR)
+_KI = 0*(360/PPR)
+_KD = 0*(360/PPR)
 
 ## @brief Encoder ticks per mm of belt length change.
 #  @details There are 512 ticks/mm because there are 16 teeth on the drive
@@ -40,7 +45,7 @@ _KD = 0*(360/_PPR)
 TICKS_PER_MM = 512
 ## @brief Maximum length of either belt.
 R_MAX = 330 # mm
-## @brief Maximum position of either motor (ticks)
+## @brief Maximum position of either motor (ticks).
 TICKS_MAX = TICKS_PER_MM * R_MAX
 
 # Motor IDs

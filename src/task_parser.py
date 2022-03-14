@@ -16,11 +16,20 @@ import math
 _UP = 0
 _DOWN = 1
 
-# encoder pulses per revolution
-_PPR = 256*16*4 # CPR * 16:1 gearbox * quadrature
+## @brief   Encoder pulses (ticks) per revolution
+#  @details The encoder pulses or ticks per revolution of the pulley is 256
+#           counts per revolution times 4 pulses per count for a quadrature
+#           encoder time 16 for the 16:1 ratio between the backshaft of the
+#           motor where the encoder is and the output shaft of the gearbox
+#           where the pulley is.
+PPR = 256*4*16
 
-# inkscape conversion between pixels and mm
-_DPMM = 40
+## @brief   Dots per mm from the Inkscape HPGL output.
+#  @details By default, Inkscape outputs HPGL files with units of 1/40th of a
+#           millimeter, since this is the [resolution of the HP plotters]
+#           (https://en.wikipedia.org/wiki/HP-GL)
+#           which HPGL was originally designed for.
+DPMM = 40
 
 ##  @brief Conversion from R (mm) to theta (ticks).
 #   This value is developed in the [Kinematic  Derivation] @ref page_kinematics
@@ -30,21 +39,26 @@ TICKS_PER_MM = 512
 ##  @brief Zeroed length of pen plotter arms.
 #   Measured from the pen center to the motor center.
 #   Assumed that both motor 1 and motor 2 radii are the same 
-_R_MAX = 330 # mm
+R_MAX = 330 # mm
 
-# Encoder ticks value when both arms are fully extended.
-_TICKS_MAX = TICKS_PER_MM * _R_MAX
+# The following constants are used for the transform calculation
+## @brief   Center distance between the motors (mm).
+#  @details Used for the transform from (x, y) coordinates to motor angles.
+R = 263             
+## @brief   Position of the drawing origin with respect to the motors origin.
+#  @details x-coordinate of the top left corner of the drawing area with
+#           respect to the left motor (mm).
+#           Used for the transform from (x, y) coordinates to motor angles.
+X_HOME = 80.7
+## @brief   Position of the drawing origin with respect to the motors origin.
+#  @details y-coordinate of the top left corner of the drawing area with
+#           respect to the left motor (mm).
+#           Used for the transform from (x, y) coordinates to motor angles.
+Y_HOME = 122.676
 
-# The following constants are for the transform calculation
-# Distance between the motors
-_R = 263 #mm             
-# Position of the drawing origin with respect to the motors origin
-_x_home = 80.7           
-_y_home = 122.676
-
-# Maximum length (mm) between two consecutive points. Used for interpolation to
-# smooth the drawing profile.
-_MAX_LENGTH = 2
+## @brief   Maximum length (mm) between two consecutive points.
+#  @details Used for interpolation to smooth the drawing profile.
+MAX_LENGTH = 2
 
 class Parser:
     '''!
@@ -111,11 +125,10 @@ class Parser:
                     
                     # PU exclusively comes with one coordinate 
                     if ele[:2] == 'PU':
-                        x = coords[0] / _DPMM
-                        y = coords[1] / _DPMM
+                        x = coords[0] / DPMM
+                        y = coords[1] / DPMM
                         
                         th1, th2 = transform(x, y)
-#                         print(x, y, th1, th2, 'up')
                         if not self._th1q.full():
                             self._th1q.put(th1)
                             self._th2q.put(th2)
@@ -126,16 +139,15 @@ class Parser:
                     # PD generally comes with multiple coordinates. When two
                     # consecutive coordinates are more than _MAX_LENGTH away
                     # from each other, they are split up into smaller line
-                    # segments. 
+                    # segments where each is less than our equal to . 
                     elif ele[:2] == 'PD':
                         for i in range(0, len(coords), 2):
-                            x = coords[i] / _DPMM
-                            y = coords[i + 1] / _DPMM
+                            x = coords[i] / DPMM
+                            y = coords[i + 1] / DPMM
                             
                             interpolated = linterp2(last_x, last_y, x, y)
                             for xx, yy in interpolated:
                                 th1, th2 = transform(xx, yy)
-#                                 print(xx, yy, th1, th2, 'down')
                                 if not self._th1q.full():
                                     self._th1q.put(th1)
                                     self._th2q.put(th2)
@@ -174,8 +186,8 @@ def transform(x, y):
     # we can then calcualte the radius (mm) needed to reach any point
     # x,y (mm) on the board
 
-    r_2 = ((_y_home+y)**2 + (_x_home+x)**2)**0.5
-    r_1 = ((_y_home+y)**2 + (_R-(_x_home+x))**2)**0.5
+    r_2 = ((Y_HOME+y)**2 + (X_HOME+x)**2)**0.5
+    r_1 = ((Y_HOME+y)**2 + (R-(X_HOME+x))**2)**0.5
     
     th1 = int(TICKS_PER_MM * r_1)
     th2 = int(TICKS_PER_MM * r_2)
@@ -196,7 +208,7 @@ def linterp2(x1, y1, x2, y2):
     dx = x2 - x1
     dy = y2 - y1
     dmax = max(abs(dx), abs(dy))
-    n = math.ceil(dmax / _MAX_LENGTH)
+    n = math.ceil(dmax / MAX_LENGTH)
     # print(n)
     points = []
     for i in range(n + 1):
