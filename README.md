@@ -12,7 +12,7 @@ at two adjacent corners (see sketch). The two motors will directly drive the two
 pulleys will be idlers which guide the belt. They will make the belt form one continuous loop in an hourglass shape.
 Instead of using string like the video, we will use a GT2 timing belt to increase the traction on the pulley because of the teeth
 present on the pulley wheels and the belts, and eliminate slipping. Since the total length of the belt will change slightly as the pen moves,
-we will use a stretchy rubber band joined with the timing belt to provide some room for movement while keeping tension. To actuate the pen and lift it
+we will use a stretchy paracord joined with the timing belt to provide some room for movement while keeping tension. To actuate the pen and lift it
 off of the paper when moving between drawn lines, we'll use a small servo that activates to lift the pen within its holder. This holder will have
 ball rollers on the bottom to allow it to move smoothly over the paper.
 
@@ -27,11 +27,37 @@ pulleys will be purchased from Amazon and other components to hold the pen and s
 |  1   | GT2 Timing Belt                | Amazon                |   $6.99   |
 |  1   | GT2 Timing Pulleys             | Amazon                |   $7.99   |
 |  1   | Mini Ball Transfer Bearing     | Amazon                |   $10.95  |
-|  4   | Bronze Bushings                | ME 405 Tub            |     -     |
+|  6   | Skateboard Bearings            | Jackson               |     -     |
 |  1   | Sunfounder Micro Servo         | Charlie               |     -     | 
-|  1   | BongoTies Bungie Cord          | Senior Project        |     -     | 
+|  1   | Bungee Cord 1/8" Diameter      | Amazon                |   $5.95   | 
+|  1   | Small String                   | Tori                  |     -     |
 
-## System Sketch
+
+## Preliminary System Sketch
 | ![Plotter System](images/scaledsketch.png) |
 |:--:|
 |**Figure 1: Scaled sketch showing the basic layout of our planned plotter**|
+
+## Hardware Design
+| ![Plotter System](images/cadmodel.png) |
+|:--:|
+|**Figure 2: CAD Model showing final version of Pen Plotter**|
+
+The hardware we are using is mostly 3D printed from CAD designs created in Solidworks. The main components are the motor mounts, paracord pulleys, 
+the pen carriage, and servo mount for actuating the pen.
+
+## Software Design
+The software we designed uses a task based approach to update encoder positions and control set points based on a given HPGL file. The first process
+to run is the start up process that zeros our encoders and puts the pen carriage in a known home position for us to use as a reference point to calculate 
+set points from the HPGL file. The parsed HPGL file gives coordinates in the form of encoder ticks using a coordinate transformation that calculates it 
+based on the HPGL and then sets the set point for each motor individually. The controller and encoder constantly update and share the data they collect
+to tell whether the pen has reached the proper set point. 
+
+## Results
+
+## Additional Links
+
+
+
+
+
