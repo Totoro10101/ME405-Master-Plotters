@@ -56,6 +56,21 @@ to tell whether the pen has reached the proper set point.
 For more detailed explanation on the tasks being performed, refer to our [Github Pages Documentation](https://totoro10101.github.io/ME405-Master-Plotters/)
 
 ## Results
+The results of our pen plotter were very encouraging. By the end of thep project, we were able to perform relatively complex drawings that included both 
+straight lines and curves, pen up and pen down commands, and could be taken from any file drawn in Inkscape so long as there were no memory issues with the
+HPGL and the Nucleo. 
+
+We tested the functionality of our pen plotter by providing it with multiple different HPGL files that we believed covered all the important aspects of the 
+machine. We needed a file that would move in straight lines as well as curves and also required the lifting of the pen between operations. So long as the 
+plotter was able to perform all of these tasks and draw the desired shapes, we believed it would be robust enough of a design to handle any HPGL file. 
+The system performed fairly well in these tests once we got the controller set points and kinematics all correct. One minor issue is that the device moves 
+more quickly in the direction that the bungee is pulling it in, so it was a little bit less accurate in that direction. Another thing we noticed in testing the 
+plotting was that the Inkscape HPGL included a feature to run over all line commands twice, so it would draw something, and then attempt to go right back over it 
+for a darker drawing. This functionality showed us that it wasn't perfectly repeatable due to some steady state error and overshoot in our controller or the bungee
+affecting the path too much for repeatability, so the second time a line was plotted, it wasn't perfectly overlapping the original line. This could be fixed with 
+some more tuning to controller gains or bungee length, but the variation in repeatability was small enough for our uses.
+
+In the future, if we were to revisit this design or give recommendations for others attempting the same system, we would focus on 
 
 ## Additional Links
 
