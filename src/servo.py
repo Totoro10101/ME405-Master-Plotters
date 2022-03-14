@@ -38,11 +38,11 @@ class Servo:
 # Test program for servos
 if __name__ == "__main__":
     import time
-    servo1 = Servo()
+    _servo1 = Servo()
     time.sleep(1)
     print('moving')
-    servo1.set_angle(7)
+    _servo1.set_angle(7)
     time.sleep(3)
-    servo1.set_angle(8)
+    _servo1.set_angle(8)
     time.sleep(0.5)
     print('moved')

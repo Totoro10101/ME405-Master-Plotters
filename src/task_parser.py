@@ -228,5 +228,5 @@ if __name__ == '__main__':
     _th2q = task_share.Queue('i', 1000)
     _penq = task_share.Queue('i', 1000)
     
-    parser = Parser(_th1q, _th2q, _penq)
-    parser.read('WE_ARE_AWESOME.hpgl')
+    _parser = Parser(_th1q, _th2q, _penq)
+    _parser.read('WE_ARE_AWESOME.hpgl')
