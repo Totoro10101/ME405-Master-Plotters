@@ -30,8 +30,8 @@ class EncoderDriver:
             @param      pin1            First encoder pin
             @param      pin2            Second encoder pin
             @param      timerID         Timer ID number of timer to use
-            @param      timerChannel1   Channel 1 id number. Default 1
-            @param      timerChannel2   Channel 2 id number. Default 2
+            @param      timer_channel1  Channel 1 id number. Default 1.
+            @param      timer_channel2  Channel 2 id number. Default 2.
         '''
         self._timer = pyb.Timer(timerID,period=ENC_PERIOD, prescaler=0)
         # Channels are never called in code, but they enable the timer counter 

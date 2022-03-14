@@ -67,16 +67,16 @@ def startup():
     servo1.set_angle(UP)
     zeroed1 = False
     zeroed2 = False
-    print('moving motors')
+    print('starting up...')
     motor1.set_duty_cycle(-70)
     motor2.set_duty_cycle(70)
     while not zeroed1 or not zeroed2:
         if limit1_pin.value() == 0 and not zeroed1:
-            print('m1')
+            print('Motor 1 zeroed')
             motor1.set_duty_cycle(0)
             zeroed1 = True
         if limit2_pin.value() == 0 and not zeroed2:
-            print('m2')
+            print('Motor 2 zeroed')
             motor2.set_duty_cycle(0)
             zeroed2 = True
     print('startup finished')
@@ -104,8 +104,8 @@ def task_controller_fun ():
     Task that runs a PID controller that controls both motors and the servo.
     """
     # States of controller FSM
-    _STATE_MOTOR = 0
-    _STATE_SERVO = 1
+    STATE_MOTOR = 0
+    STATE_SERVO = 1
     
     # Set the position of the encoders to the zeroing position. This must be
     # done after encoder tasks run the first time to clear accumulated ticks
@@ -114,7 +114,7 @@ def task_controller_fun ():
     encoder2.set_position(TICKS_MAX)
     
     # Initial state: Motor is controlled and pen is up from startup
-    state = _STATE_MOTOR
+    state = STATE_MOTOR
     curr_servo_state = 0
     servo_start_time = None
     
@@ -123,7 +123,6 @@ def task_controller_fun ():
         next_th1_sp = sp_theta1_queue.get()
         next_th2_sp = sp_theta2_queue.get()
         next_pen_sp = sp_pen_queue.get()
-#     print("first:", next_th1_sp, next_th2_sp, next_pen_sp)
     pidController.set_set_point((next_th1_sp, next_th2_sp))
     
     
@@ -132,7 +131,7 @@ def task_controller_fun ():
         motor1.set_duty_cycle(pidController.run(_MOTOR1))
         motor2.set_duty_cycle(pidController.run(_MOTOR2))
         
-        if state == _STATE_MOTOR:
+        if state == STATE_MOTOR:
             move_done = pidController.check_finish_step()
             if move_done:
                 # Retrieve the next setpoint in the queue, but don't update
@@ -146,11 +145,11 @@ def task_controller_fun ():
                     pidController.set_set_point((next_th1_sp, next_th2_sp))
                 else:
                     # If pen position needs to change, go to servo state
-                    state = _STATE_SERVO
+                    state = STATE_SERVO
             
-        elif state == _STATE_SERVO:
+        elif state == STATE_SERVO:
             # Time that the servo needs to change position
-            _SERVO_WAIT = 500 # ms
+            SERVO_WAIT = 500 # ms
             if servo_start_time == None:
                 servo_start_time = time.ticks_ms()
                 if curr_servo_state == 0:
@@ -159,11 +158,11 @@ def task_controller_fun ():
                     servo1.set_angle(UP)
             # Wait for servo
             elif time.ticks_diff(time.ticks_ms(),
-                                 servo_start_time) > _SERVO_WAIT:
+                                 servo_start_time) > SERVO_WAIT:
                 pidController.set_set_point((next_th1_sp, next_th2_sp))
                 curr_servo_state = next_pen_sp
                 servo_start_time = None
-                state = _STATE_MOTOR
+                state = STATE_MOTOR
         yield ()
         
 if __name__ == "__main__":

@@ -74,8 +74,8 @@ class Parser:
     
     def __init__(self, sp_theta1_queue, sp_theta2_queue, sp_pen_queue):
         '''!
-        This class returns the set of points (theta_1, theta_2, pen)
-        stored in three separate queues.
+        This class computes the set of points (theta_1, theta_2, pen)
+        and stores them in three separate queues.
         
         @param sp_theta1_queue  A queue for the setpoint motor angle, theta_1.
         @param sp_theta2_queue  A queue for the setpoint motor angle, theta_2.
@@ -160,7 +160,8 @@ class Parser:
                         print(ele)
                         raise ValueError("something other than PU/PD")
               
-        # add the command to go to the home position after drawing the image
+        # Add the command to go to the home position after drawing the image.
+        # This makes it easier to see the picture drawn.
         if not self._th1q.full():
             self._th1q.put(150000)
             self._th2q.put(150000)
@@ -186,8 +187,8 @@ def transform(x, y):
     # we can then calcualte the radius (mm) needed to reach any point
     # x,y (mm) on the board
 
-    r_2 = ((Y_HOME+y)**2 + (X_HOME+x)**2)**0.5
-    r_1 = ((Y_HOME+y)**2 + (R-(X_HOME+x))**2)**0.5
+    r_2 = ((Y_HOME + y)**2 + (X_HOME + x)**2)**0.5
+    r_1 = ((Y_HOME + y)**2 + (R - (X_HOME + x))**2)**0.5
     
     th1 = int(TICKS_PER_MM * r_1)
     th2 = int(TICKS_PER_MM * r_2)
@@ -209,7 +210,6 @@ def linterp2(x1, y1, x2, y2):
     dy = y2 - y1
     dmax = max(abs(dx), abs(dy))
     n = math.ceil(dmax / MAX_LENGTH)
-    # print(n)
     points = []
     for i in range(n + 1):
         x = x1 + dx / n * i
@@ -230,5 +230,3 @@ if __name__ == '__main__':
     
     parser = Parser(_th1q, _th2q, _penq)
     parser.read('WE_ARE_AWESOME.hpgl')
-    
-    

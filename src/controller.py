@@ -63,7 +63,7 @@ class PIDController:
         sensor and then finds the error between the actual position and the 
         desired set point value. Then calculates the setpoint value.
         
-        @param  The motor that you are controlling.
+        @param  motorID The motor that you are controlling.
         @return The actuation value to fix steady state error. When in the servo
                 state, the actuation value is the servo pwm. If the actuation
                 value is True, then the state changes to motor. When in the

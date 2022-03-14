@@ -24,13 +24,23 @@
 */
 var NAVTREE =
 [
-  [ "ME 405 Term Project: Master Plotters", "index.html", [
+  [ "ME 405 Term Project", "index.html", [
     [ "Introduction", "index.html#sec_intro", null ],
     [ "Software Design", "index.html#sec_sch", [
-      [ "task_encoder", "index.html#subsec_sch1", null ],
-      [ "task_startup", "index.html#subsec_sch2", null ],
-      [ "task_controller", "index.html#subsec_sch3", null ],
-      [ "task_parser", "index.html#subsec_sch4", null ]
+      [ "Startup", "index.html#subsec_sch1", null ],
+      [ "task_parser", "index.html#subsec_sch2", null ],
+      [ "task_encoder", "index.html#subsec_sch3", null ],
+      [ "task_controller", "index.html#subsec_sch4", null ]
+    ] ],
+    [ "Classes", "annotated.html", [
+      [ "Class List", "annotated.html", "annotated_dup" ],
+      [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
+      [ "Class Members", "functions.html", [
+        [ "All", "functions.html", null ],
+        [ "Functions", "functions_func.html", null ],
+        [ "Variables", "functions_vars.html", null ]
+      ] ]
     ] ],
     [ "Files", "files.html", [
       [ "File List", "files.html", "files_dup" ]
@@ -40,7 +50,7 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"dir_68267d1309a1af8e8297ef4c3efbcdba.html"
+"annotated.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
