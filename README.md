@@ -26,7 +26,7 @@ pulleys will be purchased from Amazon and other components to hold the pen and s
 |  1   | Nucleo with Shoe               | ME405 Tub             |     -     |
 |  1   | GT2 Timing Belt                | Amazon                |   $6.99   |
 |  1   | GT2 Timing Pulleys             | Amazon                |   $7.99   |
-|  1   | Mini Ball Transfer Bearing     | Amazon                |   $10.95  |
+|  4   | Mini Ball Transfer Bearing     | Amazon                |   $10.95  |
 |  6   | Skateboard Bearings            | Jackson               |     -     |
 |  1   | Sunfounder Micro Servo         | Charlie               |     -     | 
 |  1   | Bungee Cord 1/8" Diameter      | Amazon                |   $5.95   | 
@@ -73,15 +73,30 @@ machine. We needed a file that would move in straight lines as well as curves an
 plotter was able to perform all of these tasks and draw the desired shapes, we believed it would be robust enough of a design to handle any HPGL file. 
 The system performed fairly well in these tests once we got the controller set points and kinematics all correct. One minor issue is that the device moves 
 more quickly in the direction that the bungee is pulling it in, so it was a little bit less accurate in that direction. Another thing we noticed in testing the 
-plotting was that the Inkscape HPGL included a feature to run over all line commands twice, so it would draw something, and then attempt to go right back over it 
+plotting was that the Inkscape HPGL sometimes included a feature to run over all line commands twice, so it would draw something, and then attempt to go right back over it 
 for a darker drawing. This functionality showed us that it wasn't perfectly repeatable due to some steady state error and overshoot in our controller or the bungee
 affecting the path too much for repeatability, so the second time a line was plotted, it wasn't perfectly overlapping the original line. This could be fixed with 
-some more tuning to controller gains or bungee length, but the variation in repeatability was small enough for our uses.
+some more tuning to controller gains or bungee length, but the variation in repeatability was small enough for our uses. 
 
-In the future, if we were to revisit this design or give recommendations for others attempting the same system, we would focus on 
+## Future Work
+Both the hardware and software of the plotter could be improved. One issue previously mentioned was the difference in speed when moving directions due to the
+tension in the bungee being uneven for different positions of the pen. This could be mitigated by adding even more length to the bungee run, which makes the force more constant.
+There was also some non-negligible friction in the bearings of the idler pulleys. If this were reduced, the difference in effort between each motor could be reduced.
+Another way to reduce these effects could be to make the entire system larger, with longer belts, while retaining the same plotting area. The belts were able to stay on
+their pulleys without slipping during operation, but this was marginal and they would slip if the pen ended up far outside the drawing area. This could potentially be reduced
+with larger drive pulleys, though this would also increase the error from the true position that comes from our calculation of the kinematics of the system. We assume that the
+belt extends from the center of the drive motor and its length is proportional to the angle which the pulley has rotated through, but neither of these is strictly true.
+With a bigger pulley, we may need to revise this calculation to take into account the radius of the pulleys and the variable amount of belt that wraps around them
+as the angle of the belt changes. This does have a unique solution for each point, but requires solving a system of equations since each belt affects the other.
+
+Another improvement to the software would be the ability to draw images with a large number of points. However, we began to run into the limits of the Nucleo's
+memory. This issue could be fixed in a few ways. First, it would be good to switch to reading the HPGL file sequentially instead of loading the entire contents into memory.
+This alone would be an improvement, but to allow for any reasonable file to be drawn, it may be necessary to queue up points as the plotter is drawing. HPGL is read
+sequentially, so it would be possible to integrate the parsing of the file into the multitasking loop, which would mean that the limitation would be the size of the flash
+on the Nucleo. This is likely large enough for any reasonable plots, but if not external storage such as an SD card could be used, or HPGL could be sent over serial.
 
 ## Additional Links
-
+[Github Pages Documentation](https://totoro10101.github.io/ME405-Master-Plotters/)
 
 
 
