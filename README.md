@@ -31,6 +31,8 @@ pulleys will be purchased from Amazon and other components to hold the pen and s
 |  1   | Sunfounder Micro Servo         | Charlie               |     -     | 
 |  1   | Bungee Cord 1/8" Diameter      | Amazon                |   $5.95   | 
 |  1   | Small String                   | Tori                  |     -     |
+|  2   | Limit Switches                 | Amazon                |    $2     |
+|  1   | 3D print fillament             | Jackson               |     -     |
 
 
 ## Preliminary System Sketch
