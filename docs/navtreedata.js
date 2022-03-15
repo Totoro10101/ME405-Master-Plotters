@@ -24,7 +24,7 @@
 */
 var NAVTREE =
 [
-  [ "ME 405 Term Project: Master Plotter", "index.html", [
+  [ "ME 405 Term Project", "index.html", [
     [ "Introduction", "index.html#sec_intro", null ],
     [ "Software Design", "index.html#sec_sch", [
       [ "Startup", "index.html#subsec_sch1", null ],
