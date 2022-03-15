@@ -20,7 +20,7 @@
                         the motor positions and the controller uses the positions to
                         controll the motors. The desired plotter position is loaded
                         during startup. 
-                        @image html task_diagram.jpg width=50% \n
+                        @image html task_diagram.jpg width=40% \n
                             
     @subsection subsec_sch1 Startup
                             Before the pen plotter plots the drawing, it will zero its position. 
