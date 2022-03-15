@@ -1,4 +1,4 @@
-'''!@file task_controller.py
+'''!@file controller.py
     A class that performs closed loop PID control.
     
     @author     Tori Bornino

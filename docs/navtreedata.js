@@ -24,13 +24,17 @@
 */
 var NAVTREE =
 [
-  [ "ME 405 Term Project", "index.html", [
+  [ "ME 405 Term Project: Master Plotter", "index.html", [
     [ "Introduction", "index.html#sec_intro", null ],
     [ "Software Design", "index.html#sec_sch", [
       [ "Startup", "index.html#subsec_sch1", null ],
       [ "task_parser", "index.html#subsec_sch2", null ],
       [ "task_encoder", "index.html#subsec_sch3", null ],
       [ "task_controller", "index.html#subsec_sch4", null ]
+    ] ],
+    [ "Kinematic Derivations", "page_kinetics.html", [
+      [ "Home Position", "page_kinetics.html#sec1", null ],
+      [ "Transformation", "page_kinetics.html#sec2", null ]
     ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],

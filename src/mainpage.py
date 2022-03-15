@@ -20,7 +20,7 @@
                         the motor positions and the controller uses the positions to
                         controll the motors. The desired plotter position is loaded
                         during startup. 
-                        @image html task_diagram.jpg width=75% \n
+                        @image html task_diagram.jpg width=50% \n
                             
     @subsection subsec_sch1 Startup
                             Before the pen plotter plots the drawing, it will zero its position. 
@@ -29,7 +29,7 @@
                             determine the carriage zero point where the plotter carriage is
                             completely extended. 
                             
-                            @image html task_startup_FSM.jpg width=75% \n
+                            @image html task_startup_FSM.jpg width=25% \n
                             
     @subsection subsec_sch2 task_parser
                             Parses the HPGL file for a given image outputting the required pen locations in ticks and
@@ -37,7 +37,7 @@
                             off of the paper when not plotting. Parser task doesn't require a finite state machine
                             since it's only purpose is to read the HPGL data and doesn't transition to any other state.
                             However, the kinematic equations used in the derivation of the transition are further
-                            explained in the [Kinematics] @ref page_kinematics page.
+                            explained in the @ref page_kinetics page.
                             
     @subsection subsec_sch3 task_encoder
                             Reads the position of the encoder on each motor and stores them in a share.
@@ -52,9 +52,9 @@
                             driver uses PID closed loop control to set the motor duty cycle and move the pen
                             to the desired location. 
                             
-                            @image html task_controller_FSM.jpg width=75% \n
+                            @image html task_controller_FSM.jpg width=30% \n
                             
-
+    
                             
     @author             Tori Bornino
     @author             Jackson McLaughlin

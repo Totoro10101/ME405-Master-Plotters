@@ -69,7 +69,7 @@ class Parser:
     smaller lines to smooth drawing. The derivation of the kinematics that
     drive the translation from desired location in (x, y) [mm] to motor angles
     (theta_1, theta_2) [ticks] is explainied in the [Kinematic  Derivation]
-    @ref page_kinematics page.
+    @ref page_kinetics page.
     '''
     
     def __init__(self, sp_theta1_queue, sp_theta2_queue, sp_pen_queue):
@@ -97,7 +97,7 @@ class Parser:
         to send via a queue to our controller for setting set points for our
         motors.
         
-        @param hpgl__file the name of the hpgl file you want parsed.
+        @param hpgl_file the name of the hpgl file you want parsed.
         '''
         print("parsing hpgl...")
         

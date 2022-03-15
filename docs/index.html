@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.2"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>ME 405 Term Project: ME 405 Term Project</title>
+<title>ME 405 Term Project: Master Plotter: ME 405 Term Project: Master Plotter</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -22,9 +22,8 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">ME 405 Term Project
+   <div id="projectname">ME 405 Term Project: Master Plotter
    </div>
-   <div id="projectbrief">Pen plotter term project</div>
   </td>
  </tr>
  </tbody>
@@ -60,7 +59,7 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 </script>
 <div id="doc-content">
 <div><div class="header">
-  <div class="headertitle"><div class="title">ME 405 Term Project </div></div>
+  <div class="headertitle"><div class="title">ME 405 Term Project: Master Plotter </div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><h1><a class="anchor" id="sec_intro"></a>
@@ -71,17 +70,17 @@ Introduction</h1>
 Software Design</h1>
 <p >Before the pen plotter draws the given image, the plotter is zeroed and the given HPGL is parsed.</p>
 <p >During general operation the pen plotter has two main tasks: encoder and controller. The encoders running consecutively read the motor positions and the controller uses the positions to controll the motors. The desired plotter position is loaded during startup. </p><div class="image">
-<img src="task_diagram.jpg" alt="" width="75%"/>
+<img src="task_diagram.jpg" alt="" width="50%"/>
 </div>
 <h2><a class="anchor" id="subsec_sch1"></a>
 Startup</h2>
 <p >Before the pen plotter plots the drawing, it will zero its position. Zeroing the encoder is important to ensuring we start plotting the given image at a known location. It utilizes two limit switches to determine the carriage zero point where the plotter carriage is completely extended.</p>
 <div class="image">
-<img src="task_startup_FSM.jpg" alt="" width="75%"/>
+<img src="task_startup_FSM.jpg" alt="" width="25%"/>
 </div>
 <h2><a class="anchor" id="subsec_sch2"></a>
 task_parser</h2>
-<p >Parses the HPGL file for a given image outputting the required pen locations in ticks and pen states to construct the drawing. These include "pen advance" and lifting the pen off of the paper when not plotting. Parser task doesn't require a finite state machine since it's only purpose is to read the HPGL data and doesn't transition to any other state. However, the kinematic equations used in the derivation of the transition are further explained in the [Kinematics] page_kinematics page.</p>
+<p >Parses the HPGL file for a given image outputting the required pen locations in ticks and pen states to construct the drawing. These include "pen advance" and lifting the pen off of the paper when not plotting. Parser task doesn't require a finite state machine since it's only purpose is to read the HPGL data and doesn't transition to any other state. However, the kinematic equations used in the derivation of the transition are further explained in the <a class="el" href="page_kinetics.html">Kinematic Derivations</a> page.</p>
 <h2><a class="anchor" id="subsec_sch3"></a>
 task_encoder</h2>
 <p >Reads the position of the encoder on each motor and stores them in a share. This task does not require a finite state machine since it is only reading the position of the motor and the zeroing takes place in the startup task.</p>
@@ -90,13 +89,15 @@ task_controller</h2>
 <p >Controls the motor duty cycle and servo position based on set points stored in the <br  />
  set point queues. The controller task has two states: Motor and Servo. When a new set point is loaded, the pen condition is checked, and corrected, before transitioning back to the motor state until the next desired position is reached. The controller driver uses PID closed loop control to set the motor duty cycle and move the pen to the desired location.</p>
 <div class="image">
-<img src="task_controller_FSM.jpg" alt="" width="75%"/>
+<img src="task_controller_FSM.jpg" alt="" width="30%"/>
 </div>
-<pre class="fragment">@author             Tori Bornino
-@author             Jackson McLaughlin
-@author             Zach Stednitz
-@date               March 15, 2022
-</pre> </div></div><!-- PageDoc -->
+<dl class="section author"><dt>Author</dt><dd>Tori Bornino </dd>
+<dd>
+Jackson McLaughlin </dd>
+<dd>
+Zach Stednitz </dd></dl>
+<dl class="section date"><dt>Date</dt><dd>March 15, 2022 </dd></dl>
+</div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
