@@ -32,7 +32,7 @@ PPR = 256*4*16
 DPMM = 40
 
 ##  @brief Conversion from R (mm) to theta (ticks).
-#   This value is developed in the [Kinematic  Derivation] @ref page_kinematics
+#   This value is developed in the [Kinematic  Derivation] @ref page_kinetics
 #   page.
 TICKS_PER_MM = 512
 
